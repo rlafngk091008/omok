@@ -1376,7 +1376,10 @@ async function enter(c,state,log,isFresh){
   clearTimeout(findTimer);
   if(!S.fromRoom&&!c.startsWith('@'))findTimer=setTimeout(()=>{const m=$('roomMsg');m.textContent='방을 찾지 못했어요. 코드가 맞는지, 친구가 방을 열어 두었는지 확인해 주세요.';m.hidden=false},9000);
   try{
-    const n=c.startsWith('@')?fireNet(c.slice(1),handlers):window.claude&&window.claude.use?await roomNet(handlers,isFresh):await peerNet(handlers,isFresh);
+    /* Firebase를 불러오는 중이면 잠깐 기다려, 친구와 같은 길로 연결되게 한다. */
+    if(!c.startsWith('@')&&fbInitP&&!fb)await Promise.race([fbInitP,new Promise(f=>setTimeout(f,6000))]);
+    const viaFire=!c.startsWith('@')&&fb&&await fbReady();
+    const n=c.startsWith('@')?fireNet(c.slice(1),handlers):viaFire?roomFire(handlers,isFresh):window.claude&&window.claude.use?await roomNet(handlers,isFresh):await peerNet(handlers,isFresh);
     /* 연결되는 사이에 방을 나갔으면 바로 끊는다. */
     if(mode!=='online'||code!==c){n.close();return}
     net=n;
@@ -1460,7 +1463,7 @@ window.addEventListener('pagehide',()=>{if(net)net.close()});
 /* ===== 로그인과 친구 (깃허브 사이트 전용, Firebase) ===== */
 const FBCFG={apiKey:"AIzaSyCWo4bXiZXYhDipL3MxGUUdBz-537V6cVA",authDomain:"omok-3213c.firebaseapp.com",projectId:"omok-3213c",storageBucket:"omok-3213c.firebasestorage.app",messagingSenderId:"1067768687090",appId:"1:1067768687090:web:f46c1c5252a28c12bfa36b"};
 const FBV='10.12.2', ONLINE_MS=100000;
-let fb=null, authUser=null, myTag='', links=[], finfo={}, fwatch={}, unsubLinks=null, fbStatus='', friendTarget=null, pendingFire=null, invShown=new Set(), invNow=null, beatT=null, statT=null;
+let fbInitP=null, fbAnon=null, fb=null, authUser=null, myTag='', links=[], finfo={}, fwatch={}, unsubLinks=null, fbStatus='', friendTarget=null, pendingFire=null, invShown=new Set(), invNow=null, beatT=null, statT=null;
 const lid=(a,b)=>[a,b].sort().join('_');
 function loadJs(src){return new Promise((ok,no)=>{const x=document.createElement('script');x.src=src;x.onload=ok;x.onerror=no;document.head.appendChild(x)})}
 /* Firebase를 쓰는 곳을 이 몇 개의 함수로 모아 둔다. */
@@ -1472,7 +1475,8 @@ async function fbStart(){
   const auth=firebase.auth(),db=firebase.firestore(),FV=firebase.firestore.FieldValue;
   try{await auth.getRedirectResult()}catch(e){}
   return {
-    onAuth:cb=>auth.onAuthStateChanged(u=>cb(u?{uid:u.uid,name:u.displayName||''}:null)),
+    onAuth:cb=>auth.onAuthStateChanged(u=>cb(u?{uid:u.uid,name:u.displayName||'',anon:!!u.isAnonymous}:null)),
+    anon:async()=>(await auth.signInAnonymously()).user.uid,
     async signIn(){
       const p=new firebase.auth.GoogleAuthProvider();
       try{await auth.signInWithPopup(p)}
@@ -1516,8 +1520,10 @@ async function onAuth(u){
   if(unsubLinks){unsubLinks();unsubLinks=null}
   for(const k in fwatch)fwatch[k]();fwatch={};finfo={};links=[];
   clearInterval(beatT);
-  authUser=u;
-  if(!u){myTag='';drawAcct();render();return}
+  /* 익명 로그인은 초대 코드 방에만 쓰고, 친구 기능에는 쓰지 않는다. */
+  fbAnon=u&&u.anon?u.uid:null;
+  authUser=u&&!u.anon?u:null;
+  if(!authUser){myTag='';drawAcct();render();return}
   const ref='users/'+u.uid;
   let d=await fb.get(ref);
   if(!d){
@@ -1656,6 +1662,51 @@ function resumeFire(){
   if(p&&authUser&&p.S&&p.S.seats.includes(authUser.uid))enter(p.code,p.S,p.chat);
   else store.del('sessionStorage','omok.room');
 }
+/* 초대 코드 방도 Firebase 서버를 거친다. 휴대폰 데이터망에서도 연결된다. */
+async function fbReady(){
+  if(authUser||fbAnon)return true;
+  try{fbAnon=await fb.anon();return true}catch(e){return false}
+}
+function roomFire(h,isFresh){
+  const path='rooms/'+tid(code),c0=code;let closed=false,last=null;
+  const tick=()=>{
+    if(closed)return;
+    const up={['seen.'+me]:Date.now(),['who.'+me]:myName()};
+    if(S.fromRoom&&S.seats.includes(me))up.active=Date.now();
+    fb.update(path,up).catch(()=>{});
+  };
+  const peersOf=d=>Object.entries(d.seen||{}).filter(([k,v])=>k!==me&&Date.now()-v<45000).map(([k])=>({id:k,name:String((d.who||{})[k]||'').slice(0,12)}));
+  let un=null;
+  const start=()=>{
+    un=fb.watch(path,d=>{
+      if(closed||!d)return;last=d;
+      if(d.S)h.state(d.S);
+      if(Array.isArray(d.chat))h.chat(d.chat);
+      h.peers(peersOf(d));
+    });
+    tick();
+  };
+  const t=setInterval(()=>{tick();if(last)h.peers(peersOf(last))},15000);
+  h.conn(true);
+  if(isFresh){
+    fb.get(path).then(d=>{
+      if(closed)return;
+      if(d&&Date.now()-(d.active||0)<120000&&!(d.S&&d.S.seats&&d.S.seats.includes(me))){closed=true;clearInterval(t);h.taken();return}
+      const s=JSON.parse(JSON.stringify(S));delete s.fromRoom;
+      return fb.set(path,{S:s,chat:[],made:Date.now(),active:Date.now(),seen:{[me]:Date.now()},who:{[me]:myName()}}).then(start);
+    }).catch(()=>{if(!closed)h.fail('net')});
+  }else start();
+  return {
+    send(s){
+      const mine=JSON.parse(JSON.stringify(s));delete mine.fromRoom;
+      fb.tx(path,cur=>cur&&cur.S&&cur.S.v>=mine.v?null:{S:mine})
+        .then(ok=>{if(!ok&&code===c0)fb.get(path).then(d=>{if(d&&d.S){S=Object.assign(d.S,{fromRoom:true});save();render()}})})
+        .catch(()=>{});
+    },
+    chat(m){fb.push(path,'chat',m).catch(()=>{})},
+    close(){closed=true;clearInterval(t);un&&un();fb.update(path,{['seen.'+me]:0}).catch(()=>{})}
+  };
+}
 /* 친구 대국: 판 상태를 Firestore 문서 하나에 두고 양쪽이 지켜본다. */
 function fireNet(gid,h){
   const path='games/'+gid;let opp=null,oppSeen=0,oppU=null,closed=false;
@@ -1744,7 +1795,7 @@ $('nick').addEventListener('change',()=>{
   const v=$('nick').value.trim().slice(0,12);
   if(v){store.set('localStorage',nickKey(),v);if(authUser&&fb)fb.set('users/'+authUser.uid,{name:v},true).catch(()=>{})}else $('nick').value=store.get('localStorage',nickKey())||'';
 });
-fireInit();
+fbInitP=fireInit();
 (async()=>{
   await whoAmI();
   const n=store.get('localStorage',nickKey());
