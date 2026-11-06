@@ -289,6 +289,59 @@ input::placeholder{color:var(--muted)}
 @keyframes toastIn{from{transform:translate(-50%,-24px);opacity:0}}
 @keyframes toastOut{to{transform:translate(-50%,-16px);opacity:0}}
 @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+/* ===== 컴퓨터·패드 화면 ===== */
+.hside,.gpanel{display:none}
+.sbtn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:8px;background:var(--card);font-weight:700;font-size:16px;text-align:left;transition:background .15s,transform .12s var(--ease)}
+.sbtn:hover{background:var(--hover)}
+.sbtn:active{transform:scale(.98)}
+.sbtn svg{width:26px;height:26px;flex:none}
+@media (min-width:760px){
+  #home.scr{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"bar bar" "main side"}
+  #home .hbar{grid-area:bar;padding-block:12px}
+  #home #nick{max-width:180px}
+  #home .nav{grid-area:bar;justify-self:center;align-self:center;z-index:1;height:44px;display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--bar);box-shadow:0 0 0 1px var(--line)}
+  #home .nav button{display:flex;align-items:center;gap:6px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:700}
+  #home .nav button[aria-current=true]{background:var(--raise);color:var(--fg)}
+  #home .nav svg{width:18px;height:18px}
+  #home .tabs{grid-area:main;min-height:0}
+  #home .hbody{padding:8px 28px 28px;gap:24px}
+  .hside{grid-area:side;display:flex;flex-direction:column;gap:10px;padding:20px 20px 24px;background:var(--bar);overflow:auto;min-height:0}
+  .hside h2{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--soft)}
+  .hside .big{height:60px;font-size:22px}
+  #tHome .hfoot,#tHome .fr,#codeRow{display:none}
+  .pcard{flex:0 0 300px}
+  .cards{margin-inline:0;padding-inline:0}
+  .tiles{grid-template-columns:repeat(4,minmax(0,150px))}
+  .sheet{background:#0009;display:grid;place-items:center;padding:24px}
+  .sheet>.scr{height:auto;max-height:min(92vh,860px);width:min(560px,100%);background:var(--bg);border-radius:14px;overflow:hidden;box-shadow:0 20px 60px #0008}
+  .onb>.scr{width:min(460px,100%)}
+}
+/* 가로로 넓은 화면: 판 옆에 수순·채팅 패널 */
+body.wg .game{--bw2:max(320px,min(calc(100vw - 440px),calc(100vh - 160px)));width:auto;max-width:none;display:grid;grid-template-columns:var(--bw2) minmax(320px,380px);column-gap:20px;row-gap:6px;justify-content:center;align-content:center;padding:16px 20px}
+body.wg .game>.player,body.wg .game>.bwrap{grid-column:1}
+body.wg .game>.bwrap{width:var(--bw2)}
+body.wg .game>.player{padding-inline:0}
+body.wg .strip{display:none}
+body.wg .gpanel{grid-column:2;grid-row:1 / span 3;display:flex;flex-direction:column;gap:10px;min-height:0;height:calc(var(--bw2) + 132px);background:var(--bar);border-radius:10px;padding:12px;overflow:hidden}
+body.wg .gpanel .top{height:36px;flex:none}
+body.wg .gpanel .top .sig{right:4px;top:9px}
+body.wg .mlist{flex:1 1 120px;min-height:90px;overflow:auto;background:var(--bg);border-radius:8px;padding:6px 0;font-variant-numeric:tabular-nums}
+.mrow{display:grid;grid-template-columns:48px 1fr 1fr;padding:3px 14px;font-weight:700}
+.mrow:nth-child(odd){background:#8881}
+.mrow .n{color:var(--muted);font-weight:500}
+.mrow .m{color:var(--soft)}
+.mrow .m.cur{color:var(--fg);text-decoration:underline;text-decoration-color:var(--go);text-decoration-thickness:2px;text-underline-offset:4px}
+.mlist .e{color:var(--muted);padding:8px 14px;margin:0;font-size:14px}
+body.wg .gpanel .slot{padding-inline:0;height:auto;flex:none}
+body.wg .gpanel .tools{height:44px;background:none;grid-template-columns:1fr 1fr;gap:8px;margin:0;flex:none}
+body.wg .gpanel .tools button{background:var(--raise);border-radius:6px;grid-auto-flow:column;gap:6px;font-size:14px}
+body.wg #optBtn,body.wg #chatBtn{display:none}
+body.wg .gpanel .menu{position:static;width:auto;background:none;box-shadow:none;padding:0;display:flex;flex-wrap:wrap;gap:6px;animation:none;flex:none}
+body.wg .gpanel .menu[hidden]{display:none!important}
+body.wg .gpanel .menu button{flex:1 1 auto;text-align:center;background:var(--raise);padding:9px 10px;border-radius:6px;font-size:14px;font-weight:700}
+body.wg .gpanel .chatsheet{position:static;width:auto;height:auto;flex:1.4 1 160px;min-height:150px;max-width:none;margin:0;border-radius:8px;box-shadow:none;animation:none;padding-bottom:0;background:var(--bg)}
+body.wg .gpanel .chead button{display:none}
+body.wg .gpanel .chead{height:38px;font-size:14px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 
@@ -356,6 +409,18 @@ input::placeholder{color:var(--muted)}
       </div>
     </div>
   </div>
+  <aside class="hside" id="hside">
+    <h2>플레이</h2>
+    <button class="btn go big" id="play2">게임 시작</button>
+    <button class="sbtn" id="sCode"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M10 12a4.500 4.500 0 1 0 0-9 4.500 4.500 0 0 0 0 9zm0 2c-3.700 0-7 1.800-7 4.500V21h14v-2.500C17 15.800 13.700 14 10 14zm9-6V5h-2v3h-3v2h3v3h2v-3h3V8z"/></svg>코드로 친구 초대</button>
+    <div class="row">
+      <input type="text" id="codeIn2" maxlength="10" placeholder="받은 초대 코드" aria-label="받은 초대 코드" autocomplete="off" autocapitalize="off">
+      <button class="btn" id="join2">입장</button>
+    </div>
+    <button class="sbtn" id="sLocal"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><circle cx="9" cy="9" r="6"/><circle cx="16" cy="16" r="6" fill-opacity=".45"/></svg>같은 기기에서 두기</button>
+    <button class="sbtn" id="sPuz"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M20 11h-1V7a2 2 0 0 0-2-2h-4V4a2.500 2.500 0 0 0-5 0v1H4a2 2 0 0 0-2 2v3.800h1.500a2.700 2.700 0 0 1 0 5.400H2V20a2 2 0 0 0 2 2h3.800v-1.500a2.700 2.700 0 0 1 5.400 0V22H17a2 2 0 0 0 2-2v-4h1a2.500 2.500 0 0 0 0-5z"/></svg>무한 퍼즐 풀기</button>
+    <button class="sbtn" id="sLearn"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M12 3 1 9l11 6 9-4.900V17h2V9zM5 13.200V17c0 1.700 3.100 4 7 4s7-2.300 7-4v-3.800l-7 3.800z"/></svg>규칙 배우기</button>
+  </aside>
   <nav class="nav" id="nav">
     <button data-t="tHome" aria-current="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.400 0-8 2.200-8 5v3h16v-3c0-2.800-3.600-5-8-5z"/></svg>홈</button>
     <button data-t="tPuz"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11h-1V7a2 2 0 0 0-2-2h-4V4a2.500 2.500 0 0 0-5 0v1H4a2 2 0 0 0-2 2v3.800h1.500a2.700 2.700 0 0 1 0 5.400H2V20a2 2 0 0 0 2 2h3.800v-1.500a2.700 2.700 0 0 1 5.400 0V22H17a2 2 0 0 0 2-2v-4h1a2.500 2.500 0 0 0 0-5z"/></svg>퍼즐</button>
@@ -442,6 +507,7 @@ input::placeholder{color:var(--muted)}
     <button class="btn" id="askNo" hidden>거절</button>
   </div>
   <div class="sr" id="status" role="status" aria-live="polite"></div>
+  <aside class="gpanel" id="gpanel"><div class="mlist" id="mlist"></div></aside>
   <nav class="tools">
     <button id="optBtn"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="6" r="2"/><circle cx="5" cy="12" r="2"/><circle cx="5" cy="18" r="2"/><rect x="9.5" y="4.8" width="12" height="2.4" rx="1.2"/><rect x="9.5" y="10.8" width="12" height="2.4" rx="1.2"/><rect x="9.5" y="16.8" width="12" height="2.4" rx="1.2"/></svg>옵션</button>
     <button id="chatBtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3c-5 0-9 3.3-9 7.5 0 2.3 1.2 4.3 3.1 5.7L5 21l5.100-2.300c.6.100 1.200.1 1.900.1 5 0 9-3.300 9-7.500S17 3 12 3z"/></svg>채팅<span class="badge" id="badge" hidden></span></button>
@@ -672,6 +738,7 @@ function accept(s){
 
 /* 닫힐 때도 부드럽게: 애니메이션이 끝난 뒤 숨긴다. */
 function hide(el,done){
+  if(document.body.classList.contains('wg')&&(el.id==='menu'||el.id==='chat'))return;
   if(el.hidden||el.classList.contains('out'))return;
   el.classList.add('out');
   el._t=setTimeout(()=>{el.hidden=true;el.classList.remove('out');done&&done()},170);
@@ -1025,6 +1092,18 @@ function drawStrip(){
   box.innerHTML=h;box.scrollLeft=keep;
   const c=box.querySelector('.cur');
   if(c)box.scrollTo({left:c.offsetLeft-box.offsetLeft-box.clientWidth+c.offsetWidth+40,behavior:'smooth'});
+  drawMlist(cur);
+}
+function drawMlist(cur){
+  const ml=$('mlist');
+  if(!S.moves.length){ml.innerHTML='<p class="e">첫 수는 흑입니다. 수순이 여기에 쌓여요.</p>';return}
+  let h='';
+  for(let k=0;k<S.moves.length;k+=2){
+    const b=k+1<S.moves.length?`<span class="m${k+1===cur?' cur':''}">${label(S.moves[k+1])}</span>`:'<span></span>';
+    h+=`<div class="mrow"><span class="n">${k/2+1}.</span><span class="m${k===cur?' cur':''}">${label(S.moves[k])}</span>${b}</div>`;
+  }
+  ml.innerHTML=h;
+  const c=ml.querySelector('.cur');if(c&&view==null)ml.scrollTop=ml.scrollHeight;else if(c)c.scrollIntoView({block:'nearest'});
 }
 function drawMini(line){
   const seq=[...line],ax=seq.map(i=>i%N),ay=seq.map(i=>Math.floor(i/N));
@@ -1114,6 +1193,9 @@ function render(){
   $('prev').disabled=(view==null?S.moves.length:view)<=0;
   $('next').disabled=view==null;
   $('chatBtn').disabled=mode!=='online';
+  if(document.body.classList.contains('wg')){
+    shutIfOpen('menu',false);$('chat').hidden=mode!=='online';
+  }
 
   const isFire=mode==='online'&&String(code).startsWith('@');
   const waiting=mode==='online'&&(isFire?fbStatus==='invite'||fbStatus==='':!opponent());
@@ -1748,6 +1830,31 @@ $('acctIn').onclick=()=>{hide($('acctBox'));signIn()};
 $('acctOut').onclick=async()=>{hide($('acctBox'));if(mode==='online'&&String(code).startsWith('@'))leave();await fb.signOut()};
 $('obGoogle').onclick=signIn;
 
+/* 컴퓨터·패드: 가로가 넓으면 판 옆 패널로 요소를 옮긴다. */
+const WG=matchMedia('(min-width:760px) and (min-aspect-ratio:1/1)');
+function shutIfOpen(id,h){const el=$(id);clearTimeout(el._t);el.classList.remove('out');el.hidden=h}
+function arrange(){
+  const w=WG.matches,P=$('gpanel');
+  const items=[document.querySelector('#game .top'),$('slot'),document.querySelector('#game .tools'),$('menu'),$('chat')];
+  document.body.classList.toggle('wg',w);
+  if(w){
+    for(const el of items){if(P.contains(el))continue;el._home=[el.parentNode,el.nextSibling];P.append(el)}
+    P.insertBefore($('mlist'),items[1]);
+  }else{
+    for(const el of [...items].reverse()){if(el._home&&P.contains(el)){el._home[0].insertBefore(el,el._home[1]&&el._home[1].parentNode===el._home[0]?el._home[1]:null)}}
+    $('menu').hidden=true;$('chat').hidden=true;
+  }
+  stripKey='';render();
+}
+try{WG.addEventListener('change',arrange)}catch(e){WG.addListener(arrange)}
+$('play2').onclick=()=>openSetup();
+$('sCode').onclick=()=>openSetup();
+$('sLocal').onclick=()=>$('localGo').click();
+$('sPuz').onclick=()=>startEndless();
+$('sLearn').onclick=()=>{tab='tLearn';render()};
+$('join2').onclick=()=>joinCode($('codeIn2').value);
+$('codeIn2').addEventListener('keydown',e=>{if(e.key==='Enter')joinCode(e.target.value)});
+
 /* 라이트·다크: 처음엔 기기 설정을 따르고, 고르면 기억한다. */
 const SUN='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.500"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 const MOON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.500 14.500A8.500 8.500 0 0 1 9.500 3.500a8.500 8.500 0 1 0 11 11z"/></svg>';
@@ -1795,6 +1902,7 @@ $('nick').addEventListener('change',()=>{
   const v=$('nick').value.trim().slice(0,12);
   if(v){store.set('localStorage',nickKey(),v);if(authUser&&fb)fb.set('users/'+authUser.uid,{name:v},true).catch(()=>{})}else $('nick').value=store.get('localStorage',nickKey())||'';
 });
+arrange();
 fbInitP=fireInit();
 (async()=>{
   await whoAmI();
