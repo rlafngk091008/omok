@@ -108,7 +108,7 @@ input::placeholder{color:var(--muted)}
 .clock:not(.live) svg{display:none}
 .turn{flex:none;font-size:13px;font-weight:700;padding:5px 12px;border-radius:4px;background:var(--go);color:#fff}
 .bwrap{position:relative;flex:none;width:100%;aspect-ratio:1}
-.board{display:block;width:100%;height:100%;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.board{display:block;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
 .slot{flex:none;height:60px;display:flex;align-items:center;gap:8px}
 .slot>*{flex:1;min-width:0}
 .slot p{margin:0;font-size:14px;font-weight:500}
@@ -289,6 +289,17 @@ input::placeholder{color:var(--muted)}
 @keyframes toastIn{from{transform:translate(-50%,-24px);opacity:0}}
 @keyframes toastOut{to{transform:translate(-50%,-16px);opacity:0}}
 @keyframes shake{20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+/* 돌통과 끌고 있는 돌 */
+.bowl{position:relative;flex:none;width:56px;height:44px;border-radius:22px;background:var(--raise);touch-action:none;cursor:grab;transition:box-shadow .2s,transform .12s var(--ease)}
+.bowl:active{cursor:grabbing;transform:scale(.95)}
+.bowl.live{box-shadow:0 0 0 2px var(--go)}
+.bowl span{position:absolute;width:20px;height:20px;border-radius:50%;box-shadow:0 1px 2px #0005}
+.bowl span:nth-child(1){left:8px;top:15px}.bowl span:nth-child(2){left:18px;top:7px}.bowl span:nth-child(3){left:27px;top:15px}
+.bowl.b span{background:radial-gradient(circle at 36% 30%,#6A6A6A,#222 55%,#0B0B0B)}
+.bowl.w span{background:radial-gradient(circle at 36% 30%,#fff,#efeee8 75%,#c8c6bd)}
+.dragstone{position:fixed;left:0;top:0;z-index:40;border-radius:50%;pointer-events:none;box-shadow:0 10px 22px #0007;will-change:transform}
+.dragstone.b{background:radial-gradient(circle at 36% 30%,#6A6A6A,#222 55%,#0B0B0B)}
+.dragstone.w{background:radial-gradient(circle at 36% 30%,#fff,#efeee8 75%,#c8c6bd)}
 /* ===== 컴퓨터·패드 화면 ===== */
 .hside,.gpanel{display:none}
 .sbtn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:8px;background:var(--card);font-weight:700;font-size:16px;text-align:left;transition:background .15s,transform .12s var(--ease)}
@@ -298,7 +309,8 @@ input::placeholder{color:var(--muted)}
 @media (min-width:760px){
   #home.scr{max-width:none;display:grid;grid-template-columns:minmax(0,1fr) 340px;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"bar bar" "main side"}
   #home .hbar{grid-area:bar;padding-block:12px}
-  #home #nick{max-width:180px}
+  #home #nick{max-width:220px}
+  #home .tbtn{margin-left:auto}
   #home .nav{grid-area:bar;justify-self:center;align-self:center;z-index:1;height:44px;display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--bar);box-shadow:0 0 0 1px var(--line)}
   #home .nav button{display:flex;align-items:center;gap:6px;padding:0 16px;border-radius:999px;font-size:15px;font-weight:700}
   #home .nav button[aria-current=true]{background:var(--raise);color:var(--fg)}
@@ -309,6 +321,7 @@ input::placeholder{color:var(--muted)}
   .hside h2{margin:0 0 4px;font-size:16px;font-weight:700;color:var(--soft)}
   .hside .big{height:60px;font-size:22px}
   #tHome .hfoot,#tHome .fr,#codeRow{display:none}
+  #tHome .sec.nofb{display:none}
   .pcard{flex:0 0 300px}
   .cards{margin-inline:0;padding-inline:0}
   .tiles{grid-template-columns:repeat(4,minmax(0,150px))}
@@ -456,6 +469,13 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
         <button class="btn" id="reroll">추천</button>
       </div>
       <p class="note">한글·영문·숫자로 2~10자(한글은 6자까지) 마음대로 정하세요. 친구에게 말로 알려 주기 쉬운 단어면 돼요.</p></div>
+      <div id="joinSec" style="display:grid;gap:8px">
+        <div class="lab"><label for="codeIn3">받은 초대 코드로 입장</label></div>
+        <div class="row">
+          <input type="text" id="codeIn3" maxlength="10" placeholder="친구가 알려 준 초대 코드" autocomplete="off" autocapitalize="off">
+          <button class="btn" id="join3">입장</button>
+        </div>
+      </div>
       <p class="msg" id="setupMsg" hidden></p>
     </div>
     <div class="hfoot gut" style="display:grid;gap:8px;animation:none">
@@ -498,7 +518,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
   <div class="player gut">
     <div class="ava"><span class="dot" id="aBot"></span></div>
     <div class="pinfo"><div class="pname" id="nBot"></div><div class="psub" id="sBot"></div></div>
-    <span class="turn" id="pBot" hidden>차례</span><div class="clock" id="cBot" hidden></div>
+    <button class="bowl" id="bowl" aria-label="돌통: 끌어서 판에 놓기" title="끌어서 판에 놓으세요" hidden><span></span><span></span><span></span></button><span class="turn" id="pBot" hidden>차례</span><div class="clock" id="cBot" hidden></div>
   </div>
   <div class="slot gut" id="slot">
     <button class="btn go big" id="confirm" disabled></button>
@@ -537,6 +557,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
 </div>
 
 <div class="toast" id="toast" hidden></div>
+<div class="dragstone" id="dragStone" hidden></div>
 
 <div class="modal" id="over" hidden>
   <div class="mcard">
@@ -689,7 +710,7 @@ const TCS=[['제한 없음',0,0],['1분',1,0],['2 | 1',2,1],['3분',3,0],['3 | 2
 const fresh=(rule,tc)=>({v:0,by:me,game:1,rule,moves:[],seats:['L1','L2'],black:'L1',names:{},resign:0,timeout:0,ask:null,tc:tc||null,t:tc?[tc.m,tc.m]:null});
 let S=fresh('renju'), mode='home', code=null, net=null, online=[], connected=false;
 let pick=null, hover=null, notice='', armResign=false, lastLen=0, findTimer=null, noticeTimer=null, toastTimer=null, shutOver='', view=null;
-let drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
+let markKey='', drag=null, noClick=false, drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
 let chat=[], chatDrawn=0, unread=0, chosenRule='renju', chosenTc=0, tickFrom=Date.now(), tickKey='';
 
 /* 초대 코드: 한글도 쓸 수 있게, 연결에 쓰는 이름은 글자를 16진수로 바꿔 만든다. */
@@ -1146,6 +1167,8 @@ function render(){
     $('fx').dataset.k=ringKey;
     $('fx').innerHTML=ringKey?live.win.line.map((i,k)=>{const [x,y]=xy(i);return `<circle class="ringin" style="animation-delay:${120+k*90}ms" cx="${x}" cy="${y}" r="19.5" fill="none" stroke="#2F7BFF" stroke-width="3"/>`}).join(''):'';
   }
+  const mkKey=[S.moves.join(),S.rule,can,puz&&puz.shown].join('|');
+  if(mkKey!==markKey){markKey=mkKey;
   if(can&&S.rule!=='free'&&(S.rule==='no33'||live.turn===BLACK)){
     for(let i=0;i<N*N;i++){
       if(live.b[i]||!forbidden(live.b,i,live.turn,S.rule))continue;
@@ -1153,7 +1176,9 @@ function render(){
     }
   }
   if(puz&&puz.shown&&!puz.solved)for(const i of puz.ans){const [x,y]=xy(i);mk+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="#2F7BFF" stroke-width="3.5" stroke-dasharray="6 4"/>`}
-  $('marks').innerHTML=mk;
+  $('marks').innerHTML=mk;}
+  const bw=$('bowl'),myTurnHere=can&&(mode!=='online'||colorOf(me)===live.turn);
+  bw.hidden=!myTurnHere;bw.className='bowl '+(live.turn===BLACK?'b':'w')+(myTurnHere?' live':'');
   const hv=$('hoverC');
   if(can&&hover!=null&&hover!==pick&&!live.b[hover]&&!forbidden(live.b,hover,live.turn,S.rule)){
     const [x,y]=xy(hover);hv.setAttribute('cx',x);hv.setAttribute('cy',y);hv.setAttribute('fill',`url(#s${live.turn===BLACK?'b':'w'})`);hv.setAttribute('opacity','.35');
@@ -1232,11 +1257,53 @@ function render(){
 }
 
 /* 착수: 판을 눌러 자리를 고르고, 아래 버튼으로 확정한다. */
-function cell(e){
+function cell(e){return cellAt(e.clientX,e.clientY)}
+function cellAt(cx,cy){
   const q=$('board').getBoundingClientRect(),s=620/q.width;
-  const x=Math.round(((e.clientX-q.left)*s-P)/C),y=Math.round(((e.clientY-q.top)*s-P)/C);
+  const x=Math.round(((cx-q.left)*s-P)/C),y=Math.round(((cy-q.top)*s-P)/C);
   return inb(x,y)?y*N+x:null;
 }
+/* 끌어서 놓기: 돌통이나 판에서 끌기 시작해, 놓은 자리에 바로 둔다. */
+function dragStart(e,fromBowl){
+  if(e.button>0)return;
+  const r=replay(S.moves,S.rule);
+  if(view!=null||!canPlayNow(r))return;
+  drag={id:e.pointerId,sx:e.clientX,sy:e.clientY,on:false,touch:e.pointerType!=='mouse',color:r.turn,target:null};
+  if(fromBowl){e.preventDefault();dragOn(e)}
+}
+function dragOn(e){
+  drag.on=true;hover=null;
+  const sz=$('board').getBoundingClientRect().width/620*40*.94,el=$('dragStone');
+  drag.sz=sz;el.style.width=el.style.height=sz+'px';el.className='dragstone '+(drag.color===BLACK?'b':'w');el.hidden=false;
+  dragMove(e);
+}
+function dragMove(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  if(!drag.on){if(Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<10)return;dragOn(e);return}
+  e.preventDefault();
+  /* 손가락에 가리지 않게 터치일 때는 손가락보다 조금 위에 돌을 띄운다. */
+  const x=e.clientX,y=e.clientY-(drag.touch?drag.sz*1.1:0);
+  $('dragStone').style.transform=`translate(${x-drag.sz/2}px,${y-drag.sz/2}px) scale(1.08)`;
+  const i=cellAt(x,y),r=replay(S.moves,S.rule),ok=i!=null&&!r.b[i]&&!forbidden(r.b,i,r.turn,S.rule);
+  drag.target=i;const np=ok?i:null;
+  if(np!==pick){pick=np;render()}
+}
+function dragEnd(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  const d=drag;drag=null;$('dragStone').hidden=true;
+  if(!d.on)return;
+  noClick=true;setTimeout(()=>{noClick=false},60);
+  const i=d.target,r=replay(S.moves,S.rule);
+  if(e.type==='pointercancel'||i==null||r.b[i]){pick=null;render();return}
+  const why=forbidden(r.b,i,r.turn,S.rule);
+  if(why){pick=null;say(`${why} 금수 자리예요`);return}
+  pick=i;place();
+}
+$('board').addEventListener('pointerdown',e=>dragStart(e,false));
+$('bowl').addEventListener('pointerdown',e=>dragStart(e,true));
+window.addEventListener('pointermove',dragMove,{passive:false});
+window.addEventListener('pointerup',dragEnd);
+window.addEventListener('pointercancel',dragEnd);
 function say(t){
   notice=t;render();clearTimeout(noticeTimer);
   noticeTimer=setTimeout(()=>{notice='';render()},2000);
@@ -1251,7 +1318,7 @@ function tap(i){
   if(pick===i){place();return}
   notice='';pick=i;render();
 }
-$('board').addEventListener('click',e=>tap(cell(e)));
+$('board').addEventListener('click',e=>{if(!noClick)tap(cell(e))});
 $('board').addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const i=cell(e);if(i!==hover){hover=i;render()}});
 $('board').addEventListener('pointerleave',()=>{if(hover!=null){hover=null;render()}});
 function shake(){const b=$('board');b.classList.remove('bshake');void b.getBoundingClientRect();b.classList.add('bshake')}
@@ -1443,7 +1510,7 @@ function showFail(){
 }
 function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
-  puz=null;drawn=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
+  puz=null;drawn=null;markKey='';stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
   for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox'])shut($(id));
 }
@@ -1524,11 +1591,19 @@ $('allLog').onclick=()=>{tab='tLog';render()};
 $('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;render()}};
 $('pgrid').onclick=e=>{const b=e.target.closest('button');if(b)startFixed(+b.dataset.i)};
 function openSetup(){
-  friendTarget=null;$('codeSec').hidden=false;$('localGo').hidden=false;
+  friendTarget=null;$('codeSec').hidden=false;$('joinSec').hidden=false;$('localGo').hidden=false;
   $('setupTitle').textContent='플레이';$('create').textContent='친구 초대 방 만들기';
   if(!normCode($('myCode').value))$('myCode').value=suggest();
   $('setupMsg').hidden=true;show($('setup'));
 }
+function join3(){
+  const c=normCode($('codeIn3').value),err=codeErr(c),m=$('setupMsg');
+  if(err){m.textContent=err;m.style.color='';m.hidden=false;return}
+  joinCode(c);
+}
+$('join3').onclick=join3;
+$('codeIn3').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.keyCode!==229)join3()});
+$('codeIn3').addEventListener('input',()=>{$('setupMsg').hidden=true});
 $('reroll').onclick=()=>{$('myCode').value=suggest();$('setupMsg').hidden=true};
 $('myCode').addEventListener('input',()=>{$('setupMsg').hidden=true});
 $('codeIn').addEventListener('input',()=>{$('lobbyMsg').hidden=true});
@@ -1679,6 +1754,7 @@ async function addFriend(){
 }
 function drawFriends(){
   const box=$('friendBox');
+  box.closest('.sec').classList.toggle('nofb',!fb);
   if(!fb){box.hidden=true;return}
   /* 다시 그려도 입력 중인 친구 코드와 안내 문구는 남긴다. */
   const old=$('fCode'),keepV=old?old.value:'',keepF=old&&document.activeElement===old,om=$('fMsg'),keepM=om&&!om.hidden?[om.textContent,om.style.color]:null;
@@ -1716,7 +1792,7 @@ function drawFriends(){
 }
 function openFriendSetup(uid,name){
   openSetup();friendTarget={uid,name};
-  $('codeSec').hidden=true;$('localGo').hidden=true;
+  $('codeSec').hidden=true;$('joinSec').hidden=true;$('localGo').hidden=true;
   $('setupTitle').textContent=`${name}님과 대국`;$('create').textContent='대국 신청 보내기';
   if(!isOn(uid)){const m=$('setupMsg');m.textContent='친구가 지금 접속해 있지 않아요. 친구가 앱을 열어 두어야 신청을 받을 수 있어요.';m.hidden=false;m.style.color='var(--muted)'}
 }
