@@ -177,6 +177,8 @@ input::placeholder{color:var(--muted)}
 .pcard small{font-size:13px;color:#D5DCEC}
 .pcard .tag{margin-top:auto;align-self:flex-start;background:var(--go);box-shadow:inset 0 -3px 0 var(--go-edge);border-radius:5px;padding:5px 12px 7px;font-weight:700;font-size:14px}
 .pcard.alt{background:#2748A8}
+.pcard.alt3{background:#B4532A}
+.grid3.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .pcard.alt2{background:#4B3AA0}
 .pcard .big-ico{position:absolute;right:12px;bottom:10px;width:84px;height:84px;opacity:.95}
 .shd{display:flex;align-items:baseline;justify-content:space-between}
@@ -371,6 +373,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
       <div class="hbody gut">
         <div class="cards">
           <button class="pcard" id="dailyCard"><svg class="bg" id="dailySvg" viewBox="0 0 330 158" preserveAspectRatio="xMaxYMid slice"></svg><span class="veil"></span><span class="txt"><b>오늘의 퍼즐</b><small id="dailySub"></small><span class="tag" id="dailyTag">풀기</span></span></button>
+          <button class="pcard alt3" id="aiCard"><span class="txt"><b>AI와 대결</b><small>입문부터 어려움까지 골라서 둬요</small><span class="tag">대결</span></span><svg class="big-ico" viewBox="0 0 24 24" fill="#FFE3A3"><path d="M11 2h2v2h4a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4zM9 9.500a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zm6 0a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zM8.500 15h7v1.500h-7zM1 10h2v5H1zm20 0h2v5h-2zM8 20h8v2H8z"/></svg></button>
           <button class="pcard alt" id="learnCard"><span class="txt"><b>규칙 배우기</b><small>3-3, 4-4, 장목을 그림으로 알아봐요</small><span class="tag">보기</span></span><svg class="big-ico" viewBox="0 0 24 24" fill="#CFE0FF"><path d="M12 3 1 9l11 6 9-4.900V17h2V9zM5 13.200V17c0 1.700 3.100 4 7 4s7-2.300 7-4v-3.800l-7 3.800z"/></svg></button>
           <button class="pcard alt2" id="localCard"><span class="txt"><b>같은 기기에서</b><small>한 화면에서 번갈아 둬요</small><span class="tag">두기</span></span><svg class="big-ico" viewBox="0 0 24 24"><circle cx="9" cy="9" r="7" fill="#111"/><circle cx="16" cy="16" r="7" fill="#F4F3EE"/></svg></button>
         </div>
@@ -430,6 +433,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
       <input type="text" id="codeIn2" maxlength="10" placeholder="받은 초대 코드" aria-label="받은 초대 코드" autocomplete="off" autocapitalize="off">
       <button class="btn" id="join2">입장</button>
     </div>
+    <button class="sbtn" id="sAi"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M11 2h2v2h4a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4zM9 9.500a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zm6 0a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zM8.500 15h7v1.500h-7z"/></svg>AI와 대결</button>
     <button class="sbtn" id="sLocal"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><circle cx="9" cy="9" r="6"/><circle cx="16" cy="16" r="6" fill-opacity=".45"/></svg>같은 기기에서 두기</button>
     <button class="sbtn" id="sPuz"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M20 11h-1V7a2 2 0 0 0-2-2h-4V4a2.500 2.500 0 0 0-5 0v1H4a2 2 0 0 0-2 2v3.800h1.500a2.700 2.700 0 0 1 0 5.400H2V20a2 2 0 0 0 2 2h3.800v-1.500a2.700 2.700 0 0 1 5.400 0V22H17a2 2 0 0 0 2-2v-4h1a2.500 2.500 0 0 0 0-5z"/></svg>무한 퍼즐 풀기</button>
     <button class="sbtn" id="sLearn"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M12 3 1 9l11 6 9-4.900V17h2V9zM5 13.200V17c0 1.700 3.100 4 7 4s7-2.300 7-4v-3.800l-7 3.800z"/></svg>규칙 배우기</button>
@@ -451,6 +455,22 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
       <input type="text" id="obName" maxlength="12" placeholder="예: 오목왕" aria-label="내 이름" autocomplete="off">
     </div>
     <div class="hfoot gut" style="display:grid;gap:8px"><button class="btn go big" id="obGo" disabled>시작하기</button><button class="btn gbtn" id="obGoogle" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.400-.2-2.100H12v4h6c-.3 1.400-1.100 2.500-2.200 3.300v2.700h3.600c2.100-1.900 3.200-4.700 3.200-7.900z"/><path fill="#34A853" d="M12 23c3 0 5.500-1 7.300-2.700l-3.600-2.700c-1 .7-2.200 1.100-3.700 1.100-2.800 0-5.200-1.900-6.100-4.500H2.200v2.800C4 20.500 7.700 23 12 23z"/><path fill="#FBBC05" d="M5.900 14.200c-.2-.7-.4-1.400-.4-2.200s.1-1.500.4-2.200V7H2.200C1.400 8.500 1 10.200 1 12s.4 3.500 1.200 5l3.700-2.800z"/><path fill="#EA4335" d="M12 5.400c1.600 0 3.100.6 4.200 1.700l3.200-3.200C17.500 2.100 15 1 12 1 7.700 1 4 3.500 2.200 7l3.700 2.800c.9-2.600 3.300-4.400 6.100-4.400z"/></svg>구글 계정으로 시작</button></div>
+  </div>
+</div>
+
+<div class="sheet" id="aiSheet" hidden>
+  <div class="scr">
+    <div class="shead"><button id="aiBack" aria-label="뒤로">‹</button><span>AI와 대결</span><span></span></div>
+    <div class="sbody gut">
+      <div class="lab">난이도</div>
+      <div class="grid3 g4" id="aiLv"></div>
+      <p class="note" id="aiNote"></p>
+      <div class="lab">내 돌</div>
+      <div class="grid3" id="aiSide"></div>
+      <div class="lab">규칙</div>
+      <div class="grid3" id="aiRule"></div>
+    </div>
+    <div class="hfoot gut"><button class="btn go big" id="aiGo">대결 시작</button></div>
   </div>
 </div>
 
@@ -480,7 +500,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
     </div>
     <div class="hfoot gut" style="display:grid;gap:8px;animation:none">
       <button class="btn go big" id="create">친구 초대 방 만들기</button>
-      <button class="btn" id="localGo">같은 기기에서 두기</button>
+      <div class="row"><button class="btn" id="aiFromSetup" style="flex:1">AI와 두기</button><button class="btn" id="localGo" style="flex:1">같은 기기에서 두기</button></div>
     </div>
   </div>
 </div>
@@ -818,6 +838,107 @@ function genPuzzle(type,seed){
   }
   return null;
 }
+
+/* ===== AI: 줄 모양 점수 + (어려움) 연속 4 읽기와 한 수 앞 보기 ===== */
+const PATS=[['xxxxx',100000],['.xxxx.',15000],['xxxx.',3000],['.xxxx',3000],['x.xxx',3000],['xxx.x',3000],['xx.xx',3000],
+  ['.xxx..',1800],['..xxx.',1800],['.x.xx.',1600],['.xx.x.',1600],['.xxx.',900],
+  ['xxx..',220],['..xxx',220],['x.xx.',200],['.xx.x',200],['xx.x.',200],['.x.xx',200],['x..xx',150],['xx..x',150],['x.x.x',150],
+  ['..xx..',140],['.x.x.',90],['.xx.',60],['xx',18],['x',3]];
+function lineOf(b,x,y,dx,dy,c){let s='';for(let k=-5;k<=5;k++){if(!k){s+='x';continue}const v=at(b,x+k*dx,y+k*dy);s+=v===c?'x':v===0?'.':'o'}return s}
+function dirScore(str){
+  for(const [p,v] of PATS){let i=str.indexOf(p);while(i>=0){if(i<=5&&i+p.length>5)return v;i=str.indexOf(p,i+1)}}
+  return 0;
+}
+function placeScore(b,i,c){
+  const x=i%N,y=(i-x)/N;let sum=0,fours=0,threes=0;
+  for(const [dx,dy] of DIRS){const v=dirScore(lineOf(b,x,y,dx,dy,c));sum+=v;if(v>=3000&&v<100000)fours++;else if(v>=1600)threes++}
+  if(sum>=100000)return sum;
+  if(fours>=2||(fours&&threes))sum+=20000;else if(threes>=2)sum+=6000;
+  return sum;
+}
+function aiCands(b,d){const o=[];for(let i=0;i<N*N;i++)if(!b[i]&&nearAny(b,i,d))o.push(i);return o}
+function rank(b,c,rule,dw){
+  const o=3-c,out=[];
+  for(const i of aiCands(b,2)){
+    if(forbidden(b,i,c,rule))continue;
+    const atk=placeScore(b,i,c),def=forbidden(b,i,o,rule)?0:placeScore(b,i,o);
+    const x=i%N,y=(i-x)/N,mid=7-Math.max(Math.abs(x-7),Math.abs(y-7));
+    out.push({i,v:atk+def*dw+mid,atk,def});
+  }
+  return out.sort((a,b)=>b.v-a.v);
+}
+function fivesNear(b,i,c,rule){
+  const x=i%N,y=(i-x)/N,o=[];
+  for(const [dx,dy] of DIRS)for(let k=-4;k<=4;k++){
+    const px=x+k*dx,py=y+k*dy;if(!k||at(b,px,py)!==0)continue;const p=py*N+px;
+    if(o.includes(p)||forbidden(b,p,c,rule))continue;b[p]=c;if(winLine(b,p,c,rule))o.push(p);b[p]=0;
+  }
+  return o;
+}
+let vcfBudget=0,vcfEnd=0;
+function vcf(b,c,rule,depth){
+  if(depth<=0||vcfBudget--<=0||Date.now()>vcfEnd)return null;
+  const o=3-c;
+  for(const i of aiCands(b,2)){
+    if(forbidden(b,i,c,rule))continue;
+    const x=i%N,y=(i-x)/N;
+    if(!DIRS.some(([dx,dy])=>dirScore(lineOf(b,x,y,dx,dy,c))>=3000))continue;
+    b[i]=c;
+    if(winLine(b,i,c,rule)){b[i]=0;return i}
+    const w=fivesNear(b,i,c,rule);
+    let ok=false;
+    if(w.length&&!winsFor(b,o).length){
+      if(w.length>=2)ok=true;
+      else{
+        const d=w[0];
+        if(forbidden(b,d,o,rule))ok=true;
+        else{b[d]=o;ok=vcf(b,c,rule,depth-1)!=null;b[d]=0}
+      }
+    }
+    b[i]=0;
+    if(ok)return i;
+  }
+  return null;
+}
+function aiMove(moves,rule,level){
+  const r=replay(moves,rule);if(!r)return null;
+  const b=r.b,c=r.turn,o=3-c;
+  if(!moves.length)return 7*N+7;
+  const dw=[0.35,0.6,0.95,1][level];
+  const list=rank(b,c,rule,dw);
+  if(!list.length)return null;
+  if(level===0){
+    if(Math.random()<0.6&&list[0].atk>=100000)return list[0].i;
+    const top=list.slice(0,6);return top[Math.floor(Math.random()*top.length)].i;
+  }
+  if(level===1){
+    if(list[0].atk>=100000||list[0].def>=100000)return list[0].i;
+    if(list[0].def>=15000&&Math.random()<0.8)return list[0].i;
+    const top=list.slice(0,5).map(e=>({i:e.i,v:e.v*(0.5+Math.random())}));
+    return top.sort((a,b)=>b.v-a.v)[0].i;
+  }
+  const win=list.find(e=>e.atk>=100000);if(win)return win.i;
+  const block=list.find(e=>e.def>=100000);if(block)return block.i;
+  vcfEnd=Date.now()+1400;
+  if(level===2){vcfBudget=400;const v2=vcf(b,c,rule,4);return v2!=null?v2:list[0].i}
+  vcfBudget=2500;const v=vcf(b,c,rule,10);if(v!=null)return v;
+  /* 상대에게 연속 4 승리가 있으면 그 시작점을 먼저 막는다. */
+  vcfBudget=1200;const ov=vcf(b,o,rule,8);
+  let best=null,bestV=-1e9;
+  const pool=list.slice(0,8);if(ov!=null&&!pool.some(e=>e.i===ov)&&!forbidden(b,ov,c,rule))pool.push({i:ov,v:0});
+  for(const e of pool){
+    b[e.i]=c;
+    let val=e.v;
+    if(winsFor(b,o).length&&!winLine(b,e.i,c,rule))val-=500000;
+    else{
+      const rep=rank(b,o,rule,0.9);val-=0.75*(rep.length?rep[0].v:0);
+      if(ov!=null){vcfBudget=500;if(vcf(b,o,rule,8)!=null)val-=200000}
+    }
+    b[e.i]=0;
+    if(val>bestV){bestV=val;best=e.i}
+  }
+  return best;
+}
 /*ENDGEN*/
 const dayStr=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 const TYPES=['win','block','four','double'];
@@ -829,12 +950,19 @@ let worker=null,wseq=0;const jobs=new Map();
 function mkWorker(){
   try{
     const cut=(a,b)=>SRC.split(a)[1].split(b)[0];
-    const code=cut('/*'+'RULES*/','/*'+'END*/')+cut('/*'+'GEN*/','/*'+'ENDGEN*/')+'\nonmessage=e=>{const d=e.data;postMessage({id:d.id,p:genPuzzle(d.type,d.seed)})};';
+    const code=cut('/*'+'RULES*/','/*'+'END*/')+cut('/*'+'GEN*/','/*'+'ENDGEN*/')+'\nonmessage=e=>{const d=e.data;postMessage({id:d.id,p:d.kind==="ai"?aiMove(d.moves,d.rule,d.level):genPuzzle(d.type,d.seed)})};';
     const w=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     w.onmessage=e=>{const j=jobs.get(e.data.id);if(j){jobs.delete(e.data.id);j.f(e.data.p)}};
-    w.onerror=()=>{worker=false;for(const [k,j] of jobs){jobs.delete(k);j.f(genPuzzle(j.type,j.seed))}};
+    w.onerror=()=>{worker=false;for(const [k,j] of jobs){jobs.delete(k);j.f(j.kind==='ai'?aiMove(j.moves,j.rule,j.level):genPuzzle(j.type,j.seed))}};
     return w;
   }catch(e){return false}
+}
+function aiAsync(moves,rule,level){
+  if(worker===null)worker=mkWorker();
+  return new Promise(f=>{
+    if(!worker){setTimeout(()=>f(aiMove(moves,rule,level)),30);return}
+    const id=++wseq;jobs.set(id,{kind:'ai',moves,rule,level,f});worker.postMessage({id,kind:'ai',moves,rule,level});
+  });
 }
 function gen(type,seed){
   if(worker===null)worker=mkWorker();
@@ -1074,6 +1202,7 @@ function canPlayNow(r){
   if(result(r)||S.ask||view!=null)return false;
   if(mode==='puzzle')return !puz.solved&&!puz.loading;
   if(mode==='local')return true;
+  if(mode==='ai')return colorOf(me)===r.turn;
   return !!opponent()&&colorOf(me)===r.turn&&connected;
 }
 function ctaText(r,res,can){
@@ -1085,11 +1214,12 @@ function ctaText(r,res,can){
   if(S.ask)return S.ask.by===me?'친구의 답을 기다리는 중':'요청에 답해 주세요';
   if(mode==='online'&&!opponent())return '친구를 기다리는 중';
   if(mode==='online'&&!seated())return `${noteName(r.turn)} 차례 · 관전 중`;
+  if(mode==='ai'&&colorOf(me)!==r.turn)return 'AI가 생각하는 중…';
   if(can)return pick!=null?`${label(pick)}에 두기`:'둘 자리를 고르세요';
   return mode==='online'&&colorOf(me)!==r.turn?'친구 차례':'연결하는 중';
 }
 function setPlayer(pos,color,id,r,res){
-  const you=id===me,local=mode!=='online';
+  const you=id===me,local=mode==='local'||mode==='puzzle';
   $('n'+pos).textContent=local?noteName(color):(id?(S.names[id]||noteName(color))+(you?' (나)':''):'친구 기다리는 중');
   $('a'+pos).className='dot '+(color===BLACK?'b':'w');
   const off=mode==='online'&&id&&!you&&opponent()&&!online.some(p=>p.id===id);
@@ -1147,6 +1277,8 @@ function render(){
   const res=result(live), can=canPlayNow(live);
   if(!can)pick=null;
   if(res&&mode==='online'&&seated())record(res);
+  if(res&&mode==='ai')recordAi(res);
+  if(mode==='ai'&&!res&&view==null&&!S.ask&&colorOf('ai')===live.turn)aiTurn();
   syncTick();
   let mk='';
   /* 돌은 바뀐 만큼만 다시 그려 애니메이션이 끊기지 않게 한다. */
@@ -1177,7 +1309,7 @@ function render(){
   }
   if(puz&&puz.shown&&!puz.solved)for(const i of puz.ans){const [x,y]=xy(i);mk+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="#2F7BFF" stroke-width="3.5" stroke-dasharray="6 4"/>`}
   $('marks').innerHTML=mk;}
-  const bw=$('bowl'),myTurnHere=can&&(mode!=='online'||colorOf(me)===live.turn);
+  const bw=$('bowl'),myTurnHere=can&&(mode==='local'||mode==='puzzle'||colorOf(me)===live.turn);
   bw.hidden=!myTurnHere;bw.className='bowl '+(live.turn===BLACK?'b':'w')+(myTurnHere?' live':'');
   const hv=$('hoverC');
   if(can&&hover!=null&&hover!==pick&&!live.b[hover]&&!forbidden(live.b,hover,live.turn,S.rule)){
@@ -1186,7 +1318,7 @@ function render(){
   drawPick(can,live);
   $('board').style.cursor=can?'pointer':'default';
 
-  botC=mode==='online'&&seated()?colorOf(me)||BLACK:BLACK;
+  botC=(mode==='online'||mode==='ai')&&seated()?colorOf(me)||BLACK:BLACK;
   const wId=S.seats.find(x=>x!==S.black)||null, idOf=c=>c===BLACK?S.black:wId;
   setPlayer('Top',3-botC,idOf(3-botC),live,res);
   setPlayer('Bot',botC,idOf(botC),live,res);
@@ -1243,7 +1375,7 @@ function render(){
     $('again').textContent='다음 퍼즐';$('again').disabled=false;$('again').hidden=false;
     $('mini').style.display='none';
   }else if(res){
-    const mine=mode==='online'&&seated()?colorOf(me):0;
+    const mine=(mode==='online'||mode==='ai')&&seated()?colorOf(me):0;
     $('overT').textContent=!res.color?'무승부':mine?(mine===res.color?'승리하셨습니다!':'아쉽게 졌어요'):`${noteName(res.color)} 승리`;
     $('overS').textContent=res.why==='판이 가득 참'?res.why:`${res.why}${res.why==='시간 초과'||res.why==='기권'?'로':'으로'}`;
     $('again').textContent=iAsked?'응답 기다리는 중':(mode==='local'?'새 판':'재대결');
@@ -1357,6 +1489,10 @@ $('optBtn').onclick=()=>{if($('menu').hidden)show($('menu'));else closeMenu();hi
 $('undo').onclick=()=>{
   pick=null;view=null;closeMenu();
   if(mode==='local')commit(s=>{s.moves=s.moves.slice(0,-1)});
+  else if(mode==='ai')commit(s=>{
+    const mine=colorOf(me),turn=m=>m.length%2?WHITE:BLACK;
+    let m=s.moves.slice(0,-1);while(m.length&&turn(m)!==mine)m=m.slice(0,-1);s.moves=m;
+  });
   else commit(s=>{s.ask={kind:'undo',by:me}});
 };
 $('resign').onclick=()=>{
@@ -1368,7 +1504,7 @@ $('resign').onclick=()=>{
 $('again').onclick=()=>{
   if(puz){if(puz.src==='fixed')startFixed((puz.i+1)%PUZ.length);else startEndless();return}
   pick=null;view=null;
-  if(mode==='local')commit(doAgain); else commit(s=>{s.ask={kind:'again',by:me}});
+  if(mode==='local'||mode==='ai')commit(doAgain); else commit(s=>{s.ask={kind:'again',by:me}});
 };
 $('overClose').onclick=()=>hide($('over'),()=>{shutOver=S.game+':'+S.moves.length+':'+S.resign+':'+S.timeout;render()});
 $('askYes').onclick=()=>commit(s=>{const a=s.ask;if(!a)return;if(a.kind==='undo'){doUndo(s,a.by);s.ask=null}else doAgain(s)});
@@ -1512,7 +1648,7 @@ function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
   puz=null;drawn=null;markKey='';stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
-  for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox'])shut($(id));
+  for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox','aiSheet'])shut($(id));
 }
 async function enter(c,state,log,isFresh){
   if(net)net.close();
@@ -1905,6 +2041,54 @@ $('acctClose').onclick=()=>hide($('acctBox'));
 $('acctIn').onclick=()=>{hide($('acctBox'));signIn()};
 $('acctOut').onclick=async()=>{hide($('acctBox'));if(mode==='online'&&String(code).startsWith('@'))leave();await fb.signOut()};
 $('obGoogle').onclick=signIn;
+
+/* ===== AI 대결 ===== */
+const AILV=[['입문','처음 배우는 사람용이에요. 실수를 자주 해요.'],['쉬움','기본적인 공격과 수비를 해요.'],['보통','4와 열린 3을 놓치지 않아요.'],['어려움','연속 4로 끝내는 수까지 읽어요.']];
+let aiLevel=Math.min(3,Math.max(0,+(store.get('localStorage','omok.aiLv')??1))),aiSide='b',aiBusy=false;
+function aiTurn(){
+  if(aiBusy)return;
+  aiBusy=true;
+  const key=S.game+':'+S.moves.length,t0=Date.now();
+  aiAsync(S.moves,S.rule,aiLevel).then(i=>{
+    setTimeout(()=>{
+      aiBusy=false;
+      if(mode!=='ai'||S.game+':'+S.moves.length!==key){if(mode==='ai')render();return}
+      const r=replay(S.moves,S.rule);
+      if(i==null||r.b[i]||forbidden(r.b,i,r.turn,S.rule))return;
+      commit(s=>{s.moves=[...s.moves,i]});
+    },Math.max(0,520-(Date.now()-t0)));
+  });
+}
+function recordAi(res){
+  const key=S.made+':'+S.game+':'+S.moves.length;
+  stat.ai=stat.ai||{};
+  if(stat.aiLast===key)return;
+  stat.aiLast=key;
+  const k=String(aiLevel),r=stat.ai[k]||{w:0,l:0,d:0},c=colorOf(me);
+  r[!res.color?'d':res.color===c?'w':'l']++;stat.ai[k]=r;
+  touchDay();saveStat();
+}
+function drawAiSheet(){
+  $('aiLv').innerHTML=AILV.map((l,k)=>`<button class="opt" data-k="${k}" aria-pressed="${k===aiLevel}">${l[0]}</button>`).join('');
+  $('aiSide').innerHTML=[['b','흑 (먼저)'],['w','백'],['r','무작위']].map(([k,l])=>`<button class="opt" data-k="${k}" aria-pressed="${k===aiSide}">${l}</button>`).join('');
+  $('aiRule').innerHTML=Object.entries(RULES).map(([k,v])=>`<button class="opt" data-k="${k}" aria-pressed="${k===chosenRule}">${v.short}</button>`).join('');
+  const r=(stat.ai||{})[String(aiLevel)];
+  $('aiNote').textContent=AILV[aiLevel][1]+(r?` 지금까지 ${r.w}승 ${r.l}패${r.d?` ${r.d}무`:''}.`:'');
+}
+function openAi(){hide($('setup'));drawAiSheet();show($('aiSheet'))}
+$('aiLv').onclick=e=>{const b=e.target.closest('button');if(b){aiLevel=+b.dataset.k;store.set('localStorage','omok.aiLv',aiLevel);drawAiSheet()}};
+$('aiSide').onclick=e=>{const b=e.target.closest('button');if(b){aiSide=b.dataset.k;drawAiSheet()}};
+$('aiRule').onclick=e=>{const b=e.target.closest('button');if(b){chosenRule=b.dataset.k;drawAiSheet();drawSetup()}};
+$('aiBack').onclick=()=>hide($('aiSheet'));
+$('aiGo').onclick=()=>{
+  if(net)net.close();net=null;
+  reset();mode='ai';code=null;me=sessionMe;
+  const side=aiSide==='r'?(Math.random()<.5?'b':'w'):aiSide;
+  S=fresh(chosenRule,null);S.seats=[me,'ai'];S.black=side==='b'?me:'ai';S.made=Date.now();
+  S.names={[me]:myName(),ai:`AI · ${AILV[aiLevel][0]}`};
+  store.set('localStorage',nickKey(),myName());render();
+};
+$('aiCard').onclick=openAi;$('sAi').onclick=openAi;$('aiFromSetup').onclick=openAi;
 
 /* 컴퓨터·패드: 가로가 넓으면 판 옆 패널로 요소를 옮긴다. */
 const WG=matchMedia('(min-width:760px) and (min-aspect-ratio:1/1)');
