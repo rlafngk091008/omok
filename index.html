@@ -302,6 +302,15 @@ input::placeholder{color:var(--muted)}
 .dragstone{position:fixed;left:0;top:0;z-index:40;border-radius:50%;pointer-events:none;box-shadow:0 10px 22px #0007;will-change:transform}
 .dragstone.b{background:radial-gradient(circle at 36% 30%,#6A6A6A,#222 55%,#0B0B0B)}
 .dragstone.w{background:radial-gradient(circle at 36% 30%,#fff,#efeee8 75%,#c8c6bd)}
+/* 복기 */
+.hrow.can{cursor:pointer;transition:background .15s}
+.hrow.can:hover{background:var(--hover)}
+.hrow time{text-align:right;line-height:1.35}
+.rv{display:inline-block;margin-top:2px;font-weight:700;color:var(--go-text)}
+.revbar{height:52px}
+.revbar .btn{height:44px;padding:0 10px;font-size:15px}
+.revbar #rvFirst,.revbar #rvLast{flex:0 0 52px}
+#confirm.rvcta:disabled{background:var(--card);color:var(--fg)}
 /* ===== 컴퓨터·패드 화면 ===== */
 .hside,.gpanel{display:none}
 .sbtn{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:8px;background:var(--card);font-weight:700;font-size:16px;text-align:left;transition:background .15s,transform .12s var(--ease)}
@@ -348,6 +357,7 @@ body.wg .mlist{flex:1 1 120px;min-height:90px;overflow:auto;background:var(--bg)
 .mrow .m.cur{color:var(--fg);text-decoration:underline;text-decoration-color:var(--go);text-decoration-thickness:2px;text-underline-offset:4px}
 .mlist .e{color:var(--muted);padding:8px 14px;margin:0;font-size:14px}
 body.wg .gpanel .slot{padding-inline:0;height:auto;flex:none}
+body.wg .gpanel .revbar{flex-wrap:wrap}
 body.wg .gpanel .tools{height:44px;background:none;grid-template-columns:1fr 1fr;gap:8px;margin:0;flex:none}
 body.wg .gpanel .tools button{background:var(--raise);border-radius:6px;grid-auto-flow:column;gap:6px;font-size:14px}
 body.wg #optBtn,body.wg #chatBtn{display:none}
@@ -546,6 +556,12 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
     <button class="btn go" id="askYes" hidden>수락</button>
     <button class="btn" id="askNo" hidden>거절</button>
   </div>
+  <div class="slot gut revbar" id="revBar" hidden>
+    <button class="btn" id="rvFirst" aria-label="처음으로">⏮</button>
+    <button class="btn" id="rvPlay">자동 재생</button>
+    <button class="btn" id="rvLast" aria-label="마지막으로">⏭</button>
+    <button class="btn go" id="rvHint">AI 추천 수</button>
+  </div>
   <div class="sr" id="status" role="status" aria-live="polite"></div>
   <aside class="gpanel" id="gpanel"><div class="mlist" id="mlist"></div></aside>
   <nav class="tools">
@@ -730,7 +746,7 @@ const TCS=[['제한 없음',0,0],['1분',1,0],['2 | 1',2,1],['3분',3,0],['3 | 2
 const fresh=(rule,tc)=>({v:0,by:me,game:1,rule,moves:[],seats:['L1','L2'],black:'L1',names:{},resign:0,timeout:0,ask:null,tc:tc||null,t:tc?[tc.m,tc.m]:null});
 let S=fresh('renju'), mode='home', code=null, net=null, online=[], connected=false;
 let pick=null, hover=null, notice='', armResign=false, lastLen=0, findTimer=null, noticeTimer=null, toastTimer=null, shutOver='', view=null;
-let markKey='', drag=null, noClick=false, drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
+let hint=null, revTimer=null, markKey='', drag=null, noClick=false, drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
 let chat=[], chatDrawn=0, unread=0, chosenRule='renju', chosenTc=0, tickFrom=Date.now(), tickKey='';
 
 /* 초대 코드: 한글도 쓸 수 있게, 연결에 쓰는 이름은 글자를 16진수로 바꿔 만든다. */
@@ -1017,7 +1033,7 @@ function record(res){
   stat[kind]++;
   stat.cur=kind==='w'?stat.cur+1:kind==='l'?0:stat.cur;
   stat.best=Math.max(stat.best,stat.cur);
-  stat.log.unshift({k:kind,o:String(S.names[opp]||'친구').slice(0,12),c,n:S.moves.length,w:res.why,r:RULES[S.rule].short,t:Date.now()});
+  stat.log.unshift({k:kind,o:String(S.names[opp]||'친구').slice(0,12),c,n:S.moves.length,w:res.why,r:RULES[S.rule].short,ru:S.rule,m:[...S.moves],t:Date.now()});
   stat.log=stat.log.slice(0,50);
   touchDay();saveStat();
 }
@@ -1039,7 +1055,7 @@ function ago(t){
 }
 function drawHist(el,rows){
   el.textContent='';
-  if(!rows.length){const p=document.createElement('p');p.className='none';p.textContent='아직 친구와 둔 대국이 없어요. 첫 판을 시작해 보세요.';el.append(p);return}
+  if(!rows.length){const p=document.createElement('p');p.className='none';p.textContent='아직 둔 대국이 없어요. 친구나 AI와 첫 판을 시작해 보세요.';el.append(p);return}
   const box=document.createElement('div');box.className='hist';
   for(const h of rows){
     const r=document.createElement('div');r.className='hrow';
@@ -1047,7 +1063,14 @@ function drawHist(el,rows){
     const c=document.createElement('div'),b=document.createElement('b'),sm=document.createElement('small');
     b.textContent=h.o;sm.textContent=`${h.c===BLACK?'흑':'백'} · ${h.n}수 · ${h.w} · ${h.r}`;c.append(b,sm);
     const t=document.createElement('time');t.textContent=ago(h.t);
-    r.append(m,c,t);box.append(r);
+    r.append(m,c,t);
+    if(Array.isArray(h.m)&&h.m.length){
+      r.classList.add('can');r.tabIndex=0;r.setAttribute('role','button');r.setAttribute('aria-label',`${h.o}와 둔 대국 복기하기`);
+      const go=el2=>{const s2=document.createElement('span');s2.className='rv';s2.textContent='복기 ›';return s2};
+      t.append(document.createElement('br'),go());
+      r.onclick=()=>startReview(h);r.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();startReview(h)}};
+    }
+    box.append(r);
   }
   el.append(box);
 }
@@ -1203,9 +1226,11 @@ function canPlayNow(r){
   if(mode==='puzzle')return !puz.solved&&!puz.loading;
   if(mode==='local')return true;
   if(mode==='ai')return colorOf(me)===r.turn;
+  if(mode==='review')return false;
   return !!opponent()&&colorOf(me)===r.turn&&connected;
 }
 function ctaText(r,res,can){
+  if(mode==='review'){const v=view==null?S.moves.length:view;return hint&&hint.at===v?(hint.i==null?'더 둘 자리가 없어요':`AI 추천 ${label(hint.i)}`+(v<S.moves.length?` · 실제로 둔 수 ${label(S.moves[v])}`:'')):(v===S.moves.length&&res?`${res.color?noteName(res.color)+' 승리 · '+res.why:'무승부'} · 복기 중`:`복기 중 · ${v} / ${S.moves.length}수`)}
   if(puz&&puz.solved)return '정답이에요!';
   if(puz&&puz.loading)return '퍼즐을 만드는 중…';
   if(res)return res.color?`${noteName(res.color)} 승리 · ${res.why}`:'무승부';
@@ -1299,13 +1324,18 @@ function render(){
     $('fx').dataset.k=ringKey;
     $('fx').innerHTML=ringKey?live.win.line.map((i,k)=>{const [x,y]=xy(i);return `<circle class="ringin" style="animation-delay:${120+k*90}ms" cx="${x}" cy="${y}" r="19.5" fill="none" stroke="#2F7BFF" stroke-width="3"/>`}).join(''):'';
   }
-  const mkKey=[S.moves.join(),S.rule,can,puz&&puz.shown].join('|');
+  const curV=view==null?S.moves.length:view,hintOn=mode==='review'&&hint&&hint.at===curV&&hint.i!=null;
+  const mkKey=[S.moves.join(),S.rule,can,puz&&puz.shown,hintOn?hint.i:'',curV].join('|');
   if(mkKey!==markKey){markKey=mkKey;
   if(can&&S.rule!=='free'&&(S.rule==='no33'||live.turn===BLACK)){
     for(let i=0;i<N*N;i++){
       if(live.b[i]||!forbidden(live.b,i,live.turn,S.rule))continue;
       const [x,y]=xy(i);mk+=`<path d="M${x-7} ${y-7}L${x+7} ${y+7}M${x+7} ${y-7}L${x-7} ${y+7}" stroke="#C8341F" stroke-width="2.6" stroke-linecap="round"/>`;
     }
+  }
+  if(hintOn){
+    const [x,y]=xy(hint.i);mk+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="#2F7BFF" stroke-width="3.5" stroke-dasharray="6 4"/>`;
+    if(curV<S.moves.length&&S.moves[curV]!==hint.i){const [ax,ay]=xy(S.moves[curV]);mk+=`<circle cx="${ax}" cy="${ay}" r="15" fill="none" stroke="#E0832B" stroke-width="3"/>`}
   }
   if(puz&&puz.shown&&!puz.solved)for(const i of puz.ans){const [x,y]=xy(i);mk+=`<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="#2F7BFF" stroke-width="3.5" stroke-dasharray="6 4"/>`}
   $('marks').innerHTML=mk;}
@@ -1318,7 +1348,7 @@ function render(){
   drawPick(can,live);
   $('board').style.cursor=can?'pointer':'default';
 
-  botC=(mode==='online'||mode==='ai')&&seated()?colorOf(me)||BLACK:BLACK;
+  botC=(mode==='online'||mode==='ai'||mode==='review')&&seated()?colorOf(me)||BLACK:BLACK;
   const wId=S.seats.find(x=>x!==S.black)||null, idOf=c=>c===BLACK?S.black:wId;
   setPlayer('Top',3-botC,idOf(3-botC),live,res);
   setPlayer('Bot',botC,idOf(botC),live,res);
@@ -1345,7 +1375,9 @@ function render(){
   $('undo').disabled=!!res||!S.moves.length||!!S.ask||!inGame;
   $('resign').disabled=!!res||!inGame;
   $('resign').textContent=armResign?'한 번 더 누르면 기권':'기권';
-  $('undo').hidden=!!puz;$('resign').hidden=!!puz;
+  $('undo').hidden=!!puz||mode==='review';$('resign').hidden=!!puz||mode==='review';
+  $('revBar').hidden=mode!=='review';$('confirm').classList.toggle('rvcta',mode==='review');
+  if(mode==='review'){$('rvPlay').textContent=revTimer?'멈춤':'자동 재생';$('rvHint').disabled=hint&&hint.busy}
   $('showAns').hidden=!puz||puz.solved||!!puz.loading;$('skipPuz').hidden=!puz||puz.src!=='endless';
   $('prev').disabled=(view==null?S.moves.length:view)<=0;
   $('next').disabled=view==null;
@@ -1366,7 +1398,7 @@ function render(){
   $('share').hidden=mode!=='online'||isFire;
 
   const key=S.game+':'+S.moves.length+':'+S.resign+':'+S.timeout;
-  const ended=res||(puz&&puz.solved);
+  const ended=mode!=='review'&&(res||(puz&&puz.solved));
   /* 승리 표시가 판 위에서 다 그려진 뒤 결과 창을 띄운다. */
   if(ended&&delayKey!==key){delayKey=key;setTimeout(()=>{readyKey=key;render()},res&&live.win?950:puz?650:250)}
   if(!($('over').classList.contains('out')))$('over').hidden=!ended||shutOver===key||readyKey!==key;
@@ -1375,7 +1407,7 @@ function render(){
     $('again').textContent='다음 퍼즐';$('again').disabled=false;$('again').hidden=false;
     $('mini').style.display='none';
   }else if(res){
-    const mine=(mode==='online'||mode==='ai')&&seated()?colorOf(me):0;
+    const mine=(mode==='online'||mode==='ai'||mode==='review')&&seated()?colorOf(me):0;
     $('overT').textContent=!res.color?'무승부':mine?(mine===res.color?'승리하셨습니다!':'아쉽게 졌어요'):`${noteName(res.color)} 승리`;
     $('overS').textContent=res.why==='판이 가득 참'?res.why:`${res.why}${res.why==='시간 초과'||res.why==='기권'?'로':'으로'}`;
     $('again').textContent=iAsked?'응답 기다리는 중':(mode==='local'?'새 판':'재대결');
@@ -1472,8 +1504,8 @@ function place(){
   });
 }
 $('confirm').onclick=place;
-$('prev').onclick=()=>{const v=view==null?S.moves.length:view;if(v>0){view=v-1;render()}};
-$('next').onclick=()=>{if(view==null)return;view=view+1>=S.moves.length?null:view+1;render()};
+$('prev').onclick=()=>{revStop();const v=view==null?S.moves.length:view;if(v>0){view=v-1;render()}};
+$('next').onclick=()=>{revStop();if(view==null)return;view=view+1>=S.moves.length?null:view+1;render()};
 
 function doUndo(s,asker){
   const last=(s.moves.length-1)%2?WHITE:BLACK;
@@ -1646,7 +1678,7 @@ function showFail(){
 }
 function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
-  puz=null;drawn=null;markKey='';stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
+  puz=null;drawn=null;markKey='';hint=null;clearInterval(revTimer);revTimer=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
   for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox','aiSheet'])shut($(id));
 }
@@ -2042,6 +2074,42 @@ $('acctIn').onclick=()=>{hide($('acctBox'));signIn()};
 $('acctOut').onclick=async()=>{hide($('acctBox'));if(mode==='online'&&String(code).startsWith('@'))leave();await fb.signOut()};
 $('obGoogle').onclick=signIn;
 
+/* ===== 복기 ===== */
+function startReview(h){
+  if(net)net.close();net=null;
+  reset();mode='review';code=null;me=sessionMe;
+  const mine=h.c===WHITE?WHITE:BLACK,opp='opp';
+  S=fresh(RULES[h.ru]?h.ru:'renju',null);S.moves=[...h.m];
+  S.seats=[me,opp];S.black=mine===BLACK?me:opp;S.names={[me]:myName(),[opp]:h.o||'상대'};
+  const winner=h.k==='w'?mine:h.k==='l'?3-mine:0;
+  if(h.w==='기권'&&winner)S.resign=3-winner;
+  if(h.w==='시간 초과'&&winner)S.timeout=3-winner;
+  if(!replay(S.moves,S.rule)){S.moves=[];}
+  view=0;render();
+}
+function revStop(){clearInterval(revTimer);revTimer=null}
+$('rvFirst').onclick=()=>{revStop();view=0;render()};
+$('rvLast').onclick=()=>{revStop();view=null;render()};
+$('rvPlay').onclick=()=>{
+  if(revTimer){revStop();render();return}
+  if(view==null)view=0;
+  revTimer=setInterval(()=>{
+    if(view==null||view+1>S.moves.length){revStop();render();return}
+    view=view+1>=S.moves.length?null:view+1;render();
+    if(view==null)revStop();
+  },850);
+  render();
+};
+$('rvHint').onclick=async()=>{
+  revStop();
+  const v=view==null?S.moves.length:view,mv=S.moves.slice(0,v),r=replay(mv,S.rule);
+  if(!r||r.win||r.full){hint={at:v,i:null};render();return}
+  hint={at:v,busy:true,i:null};render();
+  const i=await aiAsync(mv,S.rule,3);
+  if(mode!=='review')return;
+  hint={at:v,i};render();
+};
+
 /* ===== AI 대결 ===== */
 const AILV=[['입문','처음 배우는 사람용이에요. 실수를 자주 해요.'],['쉬움','기본적인 공격과 수비를 해요.'],['보통','4와 열린 3을 놓치지 않아요.'],['어려움','연속 4로 끝내는 수까지 읽어요.']];
 let aiLevel=Math.min(3,Math.max(0,+(store.get('localStorage','omok.aiLv')??1))),aiSide='b',aiBusy=false;
@@ -2065,7 +2133,11 @@ function recordAi(res){
   if(stat.aiLast===key)return;
   stat.aiLast=key;
   const k=String(aiLevel),r=stat.ai[k]||{w:0,l:0,d:0},c=colorOf(me);
-  r[!res.color?'d':res.color===c?'w':'l']++;stat.ai[k]=r;
+  const kind=!res.color?'d':res.color===c?'w':'l';
+  r[kind]++;stat.ai[k]=r;
+  stat.log=stat.log||[];
+  stat.log.unshift({k:kind,o:S.names.ai||'AI',ai:true,c,n:S.moves.length,w:res.why,r:RULES[S.rule].short,ru:S.rule,m:[...S.moves],t:Date.now()});
+  stat.log=stat.log.slice(0,50);
   touchDay();saveStat();
 }
 function drawAiSheet(){
@@ -2095,7 +2167,7 @@ const WG=matchMedia('(min-width:760px) and (min-aspect-ratio:1/1)');
 function shutIfOpen(id,h){const el=$(id);clearTimeout(el._t);el.classList.remove('out');el.hidden=h}
 function arrange(){
   const w=WG.matches,P=$('gpanel');
-  const items=[document.querySelector('#game .top'),$('slot'),document.querySelector('#game .tools'),$('menu'),$('chat')];
+  const items=[document.querySelector('#game .top'),$('slot'),$('revBar'),document.querySelector('#game .tools'),$('menu'),$('chat')];
   document.body.classList.toggle('wg',w);
   if(w){
     for(const el of items){if(P.contains(el))continue;el._home=[el.parentNode,el.nextSibling];P.append(el)}
