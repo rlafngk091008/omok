@@ -307,7 +307,8 @@ input::placeholder{color:var(--muted)}
 .hrow.can:hover{background:var(--hover)}
 .hrow time{text-align:right;line-height:1.35}
 .rv{display:inline-block;margin-top:2px;font-weight:700;color:var(--go-text)}
-.revbar{height:52px}
+.revbar{height:60px}
+#topT.rvt{font-size:15px;font-weight:700;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100vw - 110px)}
 .revbar .btn{height:44px;padding:0 10px;font-size:15px}
 .revbar #rvFirst,.revbar #rvLast{flex:0 0 52px}
 #confirm.rvcta:disabled{background:var(--card);color:var(--fg)}
@@ -517,7 +518,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
 
 <div class="game" id="game" hidden>
   <div class="top">
-    <div class="t"><svg class="logo" viewBox="0 0 30 30" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#111" stroke="#666"/><circle cx="20" cy="20" r="9" fill="#F4F3EE" stroke="#0003"/></svg>오목</div>
+    <div class="t"><svg class="logo" viewBox="0 0 30 30" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#111" stroke="#666"/><circle cx="20" cy="20" r="9" fill="#F4F3EE" stroke="#0003"/></svg><span id="topT">오목</span></div>
     <div class="sig" id="sig" title="연결 상태"><i></i><i></i><i></i><i></i></div>
   </div>
   <div class="strip gut" id="strip"></div>
@@ -533,7 +534,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
         <radialGradient id="sw" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#FFF"/><stop offset=".75" stop-color="#EFEEE8"/><stop offset="1" stop-color="#CFCDC4"/></radialGradient>
       </defs>
       <rect width="620" height="620" fill="#DDB66C"/>
-      <g id="hl"></g><g id="pickH"><rect x="-20" y="-20" width="40" height="40" fill="#6E9FFF" opacity=".6"/></g><g id="grid"></g><g id="marks"></g><g id="stones"></g><g id="fx"></g><circle id="hoverC" r="18.5" opacity="0" pointer-events="none"/><g id="pickG" visibility="hidden" pointer-events="none"><circle id="pickI" r="18.5" stroke="#0004" stroke-width=".7" opacity=".85"/></g>
+      <g id="hl"></g><g id="pickH"><rect x="-20" y="-20" width="40" height="40" fill="#6E9FFF" opacity=".6"/></g><g id="grid"></g><g id="marks"></g><g id="stones"></g><g id="nums" pointer-events="none"></g><g id="fx"></g><circle id="hoverC" r="18.5" opacity="0" pointer-events="none"/><g id="pickG" visibility="hidden" pointer-events="none"><circle id="pickI" r="18.5" stroke="#0004" stroke-width=".7" opacity=".85"/></g>
     </svg>
     <div class="wait" id="wait" hidden>
       <div class="wcard">
@@ -1319,6 +1320,12 @@ function render(){
     $('hl').innerHTML=shown.length?square(shown[shown.length-1],'#6E9FFF',.55,grew?'class="fadein"':''):'';
     drawn=[...shown];
   }
+  const showNums=mode==='review'||!!res;
+  const nk=showNums?shown.join():'';
+  if(nk!==$('nums').dataset.k){
+    $('nums').dataset.k=nk;
+    $('nums').innerHTML=showNums?shown.map((i,k)=>{const [x,y]=xy(i),n=k+1;return `<text x="${x}" y="${y+(n>99?4.5:5.5)}" text-anchor="middle" font-size="${n>99?12.5:16}" font-weight="800" font-family="sans-serif" fill="${k%2?'#1A1A1A':'#FFFFFF'}">${n}</text>`}).join(''):'';
+  }
   const ringKey=view==null&&live.win?live.win.line.join():'';
   if(ringKey!==$('fx').dataset.k){
     $('fx').dataset.k=ringKey;
@@ -1376,7 +1383,9 @@ function render(){
   $('resign').disabled=!!res||!inGame;
   $('resign').textContent=armResign?'한 번 더 누르면 기권':'기권';
   $('undo').hidden=!!puz||mode==='review';$('resign').hidden=!!puz||mode==='review';
-  $('revBar').hidden=mode!=='review';$('confirm').classList.toggle('rvcta',mode==='review');
+  $('revBar').hidden=mode!=='review';$('slot').hidden=mode==='review';
+  /* 복기 중에는 버튼 줄을 하나만 쓰고, 상태 글은 맨 위 제목 자리에 보여 준다. */
+  $('topT').textContent=mode==='review'?cta:'오목';$('topT').classList.toggle('rvt',mode==='review');
   if(mode==='review'){$('rvPlay').textContent=revTimer?'멈춤':'자동 재생';$('rvHint').disabled=hint&&hint.busy}
   $('showAns').hidden=!puz||puz.solved||!!puz.loading;$('skipPuz').hidden=!puz||puz.src!=='endless';
   $('prev').disabled=(view==null?S.moves.length:view)<=0;
@@ -1678,7 +1687,7 @@ function showFail(){
 }
 function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
-  puz=null;drawn=null;markKey='';hint=null;clearInterval(revTimer);revTimer=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
+  puz=null;drawn=null;markKey='';$('nums').dataset.k='x';hint=null;clearInterval(revTimer);revTimer=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
   for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox','aiSheet'])shut($(id));
 }
