@@ -205,6 +205,27 @@ input::placeholder{color:var(--muted)}
 .nav button{display:grid;justify-items:center;align-content:center;gap:1px;font-size:12px;color:var(--muted);transition:color .15s}
 .nav button[aria-current=true]{color:var(--go-text)}
 .nav svg{width:24px;height:24px}
+.acct{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--raise);color:var(--soft);font-weight:900;font-size:15px;overflow:hidden}
+.acct svg{width:22px;height:22px}
+.acct.on{background:var(--go);color:#fff}
+.fbox{display:grid;gap:8px}
+.fcard{background:var(--card);border-radius:8px;padding:12px;display:grid;gap:10px}
+.fcard p{margin:0;font-size:14px;color:var(--soft)}
+.mytag{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--soft)}
+.mytag b{font-size:18px;letter-spacing:.08em;color:var(--fg);font-variant-numeric:tabular-nums}
+.mytag .btn{margin-left:auto;padding:6px 12px;font-size:13px}
+.flist{display:grid;background:var(--card);border-radius:8px;overflow:hidden}
+.frow{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.frow:first-child{border-top:0}
+.frow b{display:block;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow small{display:block;color:var(--muted);font-size:12px}
+.frow .acts{display:flex;gap:6px}
+.frow .btn{padding:7px 11px;font-size:13px}
+.odot{width:10px;height:10px;border-radius:50%;background:var(--faint)}
+.odot.on{background:#2EAD5B;box-shadow:0 0 0 3px #2EAD5B33}
+.flabel{font-size:12px;font-weight:700;color:var(--muted);margin:4px 2px 0}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:8px}
+.gbtn svg{width:18px;height:18px}
 .endless{background:var(--card);border-radius:10px;padding:14px;display:grid;gap:12px}
 .endless .tile{background:var(--raise)}
 .tiles.t3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -276,6 +297,7 @@ input::placeholder{color:var(--muted)}
     <div class="ava"><span class="dot b"></span></div>
     <input type="text" id="nick" maxlength="12" placeholder="이름을 입력하세요" aria-label="내 이름" autocomplete="off">
     <button class="tbtn" id="themeBtn" aria-label="화면 밝기 바꾸기"></button>
+    <button class="acct" id="acctBtn" aria-label="계정" hidden></button>
     <div class="streak" title="연속 플레이"><svg viewBox="0 0 24 24"><path d="M12 2c1 4 6 6 6 12a6 6 0 1 1-12 0c0-2.500 1-4 2-5 .3 1.500 1 2.500 2 3 0-3.500.2-7 2-10z" fill="#FF9F2E"/></svg><span id="streak">0</span></div>
   </div>
   <div class="tabs">
@@ -289,7 +311,7 @@ input::placeholder{color:var(--muted)}
         <div class="sec">
           <div class="shd"><h2>친구</h2></div>
           <div class="fr">
-            <button class="frb" id="frInvite"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M10 12a4.500 4.500 0 1 0 0-9 4.500 4.500 0 0 0 0 9zm0 2c-3.700 0-7 1.800-7 4.500V21h14v-2.500C17 15.800 13.700 14 10 14zm9-6V5h-2v3h-3v2h3v3h2v-3h3V8z"/></svg>친구 초대</button>
+            <button class="frb" id="frInvite"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M10 12a4.500 4.500 0 1 0 0-9 4.500 4.500 0 0 0 0 9zm0 2c-3.700 0-7 1.800-7 4.500V21h14v-2.500C17 15.800 13.700 14 10 14zm9-6V5h-2v3h-3v2h3v3h2v-3h3V8z"/></svg>코드로 초대</button>
             <button class="frb" id="frCode"><svg viewBox="0 0 24 24" style="fill:var(--flame)"><path d="M14 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h9v-2H6V6h8zm1.300 3.300L13.900 8.700l2.300 2.300H9v2h7.200l-2.300 2.300 1.400 1.400 4.700-4.700z"/></svg>코드 입장</button>
             <button class="frb" id="frShare"><svg viewBox="0 0 24 24" style="fill:var(--tint)"><path d="M20 11h-1V7a2 2 0 0 0-2-2h-4V4a2.500 2.500 0 0 0-5 0v1H4a2 2 0 0 0-2 2v3.800h1.500a2.700 2.700 0 0 1 0 5.400H2V20a2 2 0 0 0 2 2h3.800v-1.500a2.700 2.700 0 0 1 5.400 0V22H17a2 2 0 0 0 2-2v-4h1a2.500 2.500 0 0 0 0-5z"/></svg>혼자 연습</button>
           </div>
@@ -298,6 +320,7 @@ input::placeholder{color:var(--muted)}
             <button class="btn" id="join">입장</button>
           </div>
           <p class="msg" id="lobbyMsg" hidden></p>
+          <div class="fbox" id="friendBox" hidden></div>
         </div>
         <div class="sec">
           <div class="shd"><h2>통계</h2></div>
@@ -349,25 +372,25 @@ input::placeholder{color:var(--muted)}
       <p>친구에게 보일 이름을 정해 주세요.<br>나중에 홈 화면 맨 위에서 바꿀 수 있어요.</p>
       <input type="text" id="obName" maxlength="12" placeholder="예: 오목왕" aria-label="내 이름" autocomplete="off">
     </div>
-    <div class="hfoot gut"><button class="btn go big" id="obGo" disabled>시작하기</button></div>
+    <div class="hfoot gut" style="display:grid;gap:8px"><button class="btn go big" id="obGo" disabled>시작하기</button><button class="btn gbtn" id="obGoogle" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.400-.2-2.100H12v4h6c-.3 1.400-1.100 2.500-2.200 3.300v2.700h3.600c2.100-1.900 3.200-4.700 3.200-7.900z"/><path fill="#34A853" d="M12 23c3 0 5.500-1 7.300-2.700l-3.600-2.700c-1 .7-2.200 1.100-3.700 1.100-2.800 0-5.200-1.900-6.100-4.500H2.200v2.800C4 20.500 7.700 23 12 23z"/><path fill="#FBBC05" d="M5.900 14.200c-.2-.7-.4-1.400-.4-2.200s.1-1.500.4-2.200V7H2.200C1.400 8.500 1 10.200 1 12s.4 3.500 1.200 5l3.700-2.800z"/><path fill="#EA4335" d="M12 5.400c1.600 0 3.100.6 4.200 1.700l3.200-3.200C17.500 2.100 15 1 12 1 7.700 1 4 3.500 2.200 7l3.700 2.800c.9-2.600 3.300-4.400 6.100-4.400z"/></svg>구글 계정으로 시작</button></div>
   </div>
 </div>
 
 <div class="sheet" id="setup" hidden>
   <div class="scr">
-    <div class="shead"><button id="setupBack" aria-label="뒤로">‹</button><span>플레이</span><span></span></div>
+    <div class="shead"><button id="setupBack" aria-label="뒤로">‹</button><span id="setupTitle">플레이</span><span></span></div>
     <div class="sbody gut">
       <div class="lab">시간 제한</div>
       <div class="grid3" id="tcGrid"></div>
       <div class="lab">규칙</div>
       <div class="grid3" id="ruleGrid"></div>
       <p class="note" id="ruleNote"></p>
-      <div class="lab"><label for="myCode">초대 코드</label></div>
+      <div id="codeSec" style="display:grid;gap:14px"><div class="lab"><label for="myCode">초대 코드</label></div>
       <div class="row">
         <input type="text" id="myCode" maxlength="10" placeholder="예: 우리반" autocomplete="off" autocapitalize="off">
         <button class="btn" id="reroll">추천</button>
       </div>
-      <p class="note">한글·영문·숫자로 2~10자(한글은 6자까지) 마음대로 정하세요. 친구에게 말로 알려 주기 쉬운 단어면 돼요.</p>
+      <p class="note">한글·영문·숫자로 2~10자(한글은 6자까지) 마음대로 정하세요. 친구에게 말로 알려 주기 쉬운 단어면 돼요.</p></div>
       <p class="msg" id="setupMsg" hidden></p>
     </div>
     <div class="hfoot gut" style="display:grid;gap:8px;animation:none">
@@ -402,6 +425,7 @@ input::placeholder{color:var(--muted)}
         <p id="waitT">친구에게 이 코드를 보내세요</p>
         <div id="codeBig"></div>
         <button class="btn go" id="copy">초대 복사</button>
+        <button class="btn" id="waitCancel" hidden>신청 취소</button>
         <p class="msg" id="roomMsg" hidden></p>
       </div>
     </div>
@@ -456,6 +480,25 @@ input::placeholder{color:var(--muted)}
       <button class="btn go big" id="again"></button>
       <button class="btn" id="newGame">나가기</button>
       <svg class="mini" id="mini" viewBox="0 0 200 200" aria-hidden="true"></svg>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="inviteBox" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2 id="invT"></h2><p id="invS"></p></div>
+    <div class="mbody"><button class="btn go big" id="invYes">수락하고 두기</button><button class="btn" id="invNo">거절</button></div>
+  </div>
+</div>
+
+<div class="modal" id="acctBox" hidden>
+  <div class="mcard">
+    <div class="mhead"><h2 id="acctT">계정</h2><p id="acctS"></p></div>
+    <button class="mx" id="acctClose" aria-label="닫기">×</button>
+    <div class="mbody" id="acctBody">
+      <button class="btn go big gbtn" id="acctIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.6 12.2c0-.7-.1-1.400-.2-2.100H12v4h6c-.3 1.400-1.100 2.500-2.200 3.300v2.700h3.600c2.100-1.900 3.200-4.700 3.200-7.900z"/><path fill="#34A853" d="M12 23c3 0 5.500-1 7.300-2.700l-3.600-2.700c-1 .7-2.200 1.100-3.700 1.100-2.800 0-5.200-1.900-6.100-4.500H2.200v2.800C4 20.500 7.700 23 12 23z"/><path fill="#FBBC05" d="M5.900 14.200c-.2-.7-.4-1.400-.4-2.200s.1-1.500.4-2.200V7H2.200C1.400 8.500 1 10.200 1 12s.4 3.500 1.200 5l3.700-2.800z"/><path fill="#EA4335" d="M12 5.400c1.600 0 3.100.6 4.200 1.700l3.200-3.200C17.500 2.100 15 1 12 1 7.700 1 4 3.500 2.200 7l3.700 2.800c.9-2.600 3.300-4.400 6.100-4.400z"/></svg>구글로 로그인</button>
+      <p class="note" id="acctNote">로그인하면 친구를 추가하고, 휴대폰을 바꿔도 이름과 기록이 그대로 남아요.</p>
+      <button class="btn" id="acctOut" hidden>로그아웃</button>
     </div>
   </div>
 </div>
@@ -568,6 +611,7 @@ const store={
 };
 const rid=()=>'p'+Math.random().toString(36).slice(2,12);
 let me=store.get('sessionStorage','omok.me')||rid();
+const sessionMe=me;
 store.set('sessionStorage','omok.me',me);
 
 const RULES={
@@ -743,7 +787,7 @@ async function ensureDaily(){
 
 /* 내 기록: 이 기기에만 저장된다. */
 const stat=Object.assign({w:0,l:0,d:0,cur:0,best:0,run:0,day:'',last:'',log:[],solved:[],daily:0,ez:{n:0,run:0,best:0}},store.get('localStorage','omok.stat')||{});
-const saveStat=()=>store.set('localStorage','omok.stat',stat);
+const saveStat=()=>{stat.updated=Date.now();store.set('localStorage','omok.stat',stat);cloudStat()};
 function touchDay(){
   const t=dayStr(new Date()),y=dayStr(new Date(Date.now()-864e5));
   if(stat.day===t)return;
@@ -802,6 +846,7 @@ function miniPos(svg,moves,w,h,U){
   svg.innerHTML=g;
 }
 function drawHome(){
+  drawFriends();drawAcct();
   $('streak').textContent=stat.run;
   drawTiles($('tiles'));drawTiles($('tiles2'));
   drawHist($('histTop'),stat.log.slice(0,3));drawHist($('histAll'),stat.log);
@@ -961,8 +1006,9 @@ function setPlayer(pos,color,id,r,res){
   $('a'+pos).className='dot '+(color===BLACK?'b':'w');
   const off=mode==='online'&&id&&!you&&opponent()&&!online.some(p=>p.id===id);
   const sub=$('s'+pos),count=S.moves.filter((_,k)=>(k%2?WHITE:BLACK)===color).length;
-  sub.textContent=off?'접속 끊김':`${noteName(color)} · ${count}수`;
-  sub.className='psub'+(off?' off':'');
+  const pend=off&&String(code).startsWith('@')&&fbStatus!=='play';
+  sub.textContent=pend?'수락 기다리는 중':off?'접속 끊김':`${noteName(color)} · ${count}수`;
+  sub.className='psub'+(off&&!pend?' off':'');
   $('c'+pos).hidden=!S.t;
   $('p'+pos).hidden=!!S.t||!!res||r.turn!==color;
 }
@@ -1063,16 +1109,22 @@ function render(){
   $('undo').disabled=!!res||!S.moves.length||!!S.ask||!inGame;
   $('resign').disabled=!!res||!inGame;
   $('resign').textContent=armResign?'한 번 더 누르면 기권':'기권';
-  $('share').hidden=mode!=='online';
   $('undo').hidden=!!puz;$('resign').hidden=!!puz;
   $('showAns').hidden=!puz||puz.solved||!!puz.loading;$('skipPuz').hidden=!puz||puz.src!=='endless';
   $('prev').disabled=(view==null?S.moves.length:view)<=0;
   $('next').disabled=view==null;
   $('chatBtn').disabled=mode!=='online';
 
-  const waiting=mode==='online'&&!opponent();
+  const isFire=mode==='online'&&String(code).startsWith('@');
+  const waiting=mode==='online'&&(isFire?fbStatus==='invite'||fbStatus==='':!opponent());
   $('wait').hidden=!waiting;
-  if(waiting){$('codeBig').textContent=showCode(code);$('waitT').textContent=S.fromRoom?'친구에게 이 코드를 보내세요':'방을 찾는 중이에요';$('copy').hidden=!S.fromRoom}
+  $('waitCancel').hidden=!isFire;
+  if(waiting&&isFire){
+    const opp=opponent();
+    $('waitT').textContent='대국 신청을 보냈어요. 친구가 수락하면 바로 시작해요.';
+    $('codeBig').textContent=S.names[opp]||'친구';$('copy').hidden=true;
+  }else if(waiting){$('codeBig').textContent=showCode(code);$('waitT').textContent=S.fromRoom?'친구에게 이 코드를 보내세요':'방을 찾는 중이에요';$('copy').hidden=!S.fromRoom}
+  $('share').hidden=mode!=='online'||isFire;
 
   const key=S.game+':'+S.moves.length+':'+S.resign+':'+S.timeout;
   const ended=res||(puz&&puz.solved);
@@ -1289,6 +1341,10 @@ const handlers={
     render();
   },
   fail(c){showFail(c)},
+  ended(st){
+    leave();
+    const m=$('lobbyMsg');m.textContent=st==='declined'?'친구가 대국 신청을 거절했어요.':'친구가 대국 신청을 취소했어요.';m.hidden=false;
+  },
   taken(){
     const c=code;
     if(net)net.close();net=null;clearTimeout(findTimer);
@@ -1307,27 +1363,29 @@ function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
   puz=null;drawn=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
-  for(const id of ['setup','menu','chat','over','ruleBox','toast'])shut($(id));
+  for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox'])shut($(id));
 }
 async function enter(c,state,log,isFresh){
   if(net)net.close();
   reset();
+  me=c.startsWith('@')&&authUser?authUser.uid:sessionMe;fbStatus='';
   code=c;mode='online';connected=false;online=[];
   S=state;chat=log||[];
   store.set('localStorage',nickKey(),myName());
   $('roomMsg').hidden=true;save();render();drawChat();
   clearTimeout(findTimer);
-  if(!S.fromRoom)findTimer=setTimeout(()=>{const m=$('roomMsg');m.textContent='방을 찾지 못했어요. 코드가 맞는지, 친구가 방을 열어 두었는지 확인해 주세요.';m.hidden=false},9000);
+  if(!S.fromRoom&&!c.startsWith('@'))findTimer=setTimeout(()=>{const m=$('roomMsg');m.textContent='방을 찾지 못했어요. 코드가 맞는지, 친구가 방을 열어 두었는지 확인해 주세요.';m.hidden=false},9000);
   try{
-    const n=window.claude&&window.claude.use?await roomNet(handlers,isFresh):await peerNet(handlers,isFresh);
+    const n=c.startsWith('@')?fireNet(c.slice(1),handlers):window.claude&&window.claude.use?await roomNet(handlers,isFresh):await peerNet(handlers,isFresh);
     /* 연결되는 사이에 방을 나갔으면 바로 끊는다. */
     if(mode!=='online'||code!==c){n.close();return}
     net=n;
-    if(!window.claude&&mode==='online')try{history.replaceState(null,'','#'+tid(code))}catch(e){}
+    if(!window.claude&&mode==='online'&&!c.startsWith('@'))try{history.replaceState(null,'','#'+tid(code))}catch(e){}
   }catch(e){showFail(e&&e.code)}
 }
 const chosen=()=>{const [,m,i]=TCS[chosenTc];return m?{m:m*60000,inc:i*1000}:null};
 $('create').onclick=()=>{
+  if(friendTarget){inviteFriend();return}
   const c=normCode($('myCode').value),err=codeErr(c),m=$('setupMsg');
   if(err){m.textContent=err;m.hidden=false;$('myCode').focus();return}
   m.hidden=true;
@@ -1349,7 +1407,8 @@ function joinCode(raw){
 $('join').onclick=()=>joinCode($('codeIn').value);
 $('codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')joinCode(e.target.value)});
 function leave(){
-  if(net)net.close();net=null;clearTimeout(findTimer);
+  if(String(code).startsWith('@')&&fbStatus==='invite')cancelInvite(code.slice(1));
+  if(net)net.close();net=null;clearTimeout(findTimer);me=sessionMe;
   store.del('sessionStorage','omok.room');
   try{history.replaceState(null,'',location.pathname+location.search)}catch(e){}
   reset();mode='home';code=null;online=[];connected=false;render();
@@ -1380,6 +1439,8 @@ $('allLog').onclick=()=>{tab='tLog';render()};
 $('nav').onclick=e=>{const b=e.target.closest('button');if(b){tab=b.dataset.t;render()}};
 $('pgrid').onclick=e=>{const b=e.target.closest('button');if(b)startFixed(+b.dataset.i)};
 function openSetup(){
+  friendTarget=null;$('codeSec').hidden=false;$('localGo').hidden=false;
+  $('setupTitle').textContent='플레이';$('create').textContent='친구 초대 방 만들기';
   if(!normCode($('myCode').value))$('myCode').value=suggest();
   $('setupMsg').hidden=true;show($('setup'));
 }
@@ -1395,6 +1456,246 @@ function drawSetup(){
 $('tcGrid').onclick=e=>{const b=e.target.closest('button');if(b){chosenTc=+b.dataset.k;drawSetup()}};
 $('ruleGrid').onclick=e=>{const b=e.target.closest('button');if(b){chosenRule=b.dataset.k;drawSetup()}};
 window.addEventListener('pagehide',()=>{if(net)net.close()});
+
+/* ===== 로그인과 친구 (깃허브 사이트 전용, Firebase) ===== */
+const FBCFG={apiKey:"AIzaSyCWo4bXiZXYhDipL3MxGUUdBz-537V6cVA",authDomain:"omok-3213c.firebaseapp.com",projectId:"omok-3213c",storageBucket:"omok-3213c.firebasestorage.app",messagingSenderId:"1067768687090",appId:"1:1067768687090:web:f46c1c5252a28c12bfa36b"};
+const FBV='10.12.2', ONLINE_MS=100000;
+let fb=null, authUser=null, myTag='', links=[], finfo={}, fwatch={}, unsubLinks=null, fbStatus='', friendTarget=null, pendingFire=null, invShown=new Set(), invNow=null, beatT=null, statT=null;
+const lid=(a,b)=>[a,b].sort().join('_');
+function loadJs(src){return new Promise((ok,no)=>{const x=document.createElement('script');x.src=src;x.onload=ok;x.onerror=no;document.head.appendChild(x)})}
+/* Firebase를 쓰는 곳을 이 몇 개의 함수로 모아 둔다. */
+async function fbStart(){
+  const base=`https://cdn.jsdelivr.net/npm/firebase@${FBV}/`;
+  await loadJs(base+'firebase-app-compat.js');
+  await Promise.all([loadJs(base+'firebase-auth-compat.js'),loadJs(base+'firebase-firestore-compat.js')]);
+  firebase.initializeApp(FBCFG);
+  const auth=firebase.auth(),db=firebase.firestore(),FV=firebase.firestore.FieldValue;
+  try{await auth.getRedirectResult()}catch(e){}
+  return {
+    onAuth:cb=>auth.onAuthStateChanged(u=>cb(u?{uid:u.uid,name:u.displayName||''}:null)),
+    async signIn(){
+      const p=new firebase.auth.GoogleAuthProvider();
+      try{await auth.signInWithPopup(p)}
+      catch(e){
+        if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].includes(e.code))await auth.signInWithRedirect(p);
+        else if(!['auth/popup-closed-by-user','auth/cancelled-popup-request'].includes(e.code))throw e;
+      }
+    },
+    signOut:()=>auth.signOut(),
+    get:async p=>{const d=await db.doc(p).get();return d.exists?d.data():null},
+    set:(p,d,merge)=>db.doc(p).set(d,merge?{merge:true}:{}),
+    update:(p,d)=>db.doc(p).update(d),
+    del:p=>db.doc(p).delete(),
+    add:async(c,d)=>(await db.collection(c).add(d)).id,
+    watch:(p,cb)=>db.doc(p).onSnapshot(d=>cb(d.exists?d.data():null),e=>console.warn(e)),
+    query:(c,f,v,cb)=>db.collection(c).where(f,'array-contains',v).onSnapshot(q=>cb(q.docs.map(d=>Object.assign({id:d.id},d.data()))),e=>console.warn(e)),
+    push:(p,f,v)=>db.doc(p).update({[f]:FV.arrayUnion(v)}),
+    tx:(p,fn)=>db.runTransaction(async t=>{const r=db.doc(p),d=await t.get(r),out=fn(d.exists?d.data():null);if(out)t.update(r,out);return !!out})
+  };
+}
+async function fireInit(){
+  if(window.claude||window.self!==window.top)return;
+  try{fb=window.__fbMock||await fbStart()}catch(e){fb=null;return}
+  $('acctBtn').hidden=false;$('obGoogle').hidden=false;
+  fb.onAuth(u=>onAuth(u).catch(e=>console.warn(e)));
+  drawAcct();render();
+}
+async function signIn(){
+  try{await fb.signIn()}
+  catch(e){const m=$('lobbyMsg');m.textContent='로그인하지 못했어요. 잠시 뒤 다시 시도해 주세요.';m.hidden=false}
+}
+async function makeTag(uid){
+  const AB='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  for(let k=0;k<8;k++){
+    let t='';for(let j=0;j<6;j++)t+=AB[Math.floor(Math.random()*AB.length)];
+    if(!(await fb.get('tags/'+t))){await fb.set('tags/'+t,{uid});return t}
+  }
+  return '';
+}
+async function onAuth(u){
+  if(unsubLinks){unsubLinks();unsubLinks=null}
+  for(const k in fwatch)fwatch[k]();fwatch={};finfo={};links=[];
+  clearInterval(beatT);
+  authUser=u;
+  if(!u){myTag='';drawAcct();render();return}
+  const ref='users/'+u.uid;
+  let d=await fb.get(ref);
+  if(!d){
+    d={name:(store.get('localStorage',nickKey())||u.name||'친구').slice(0,12),tag:await makeTag(u.uid),seen:Date.now()};
+    await fb.set(ref,d);
+  }else if(!d.tag){d.tag=await makeTag(u.uid);await fb.set(ref,{tag:d.tag},true)}
+  myTag=d.tag||'';
+  if(d.name){$('nick').value=d.name;store.set('localStorage',nickKey(),d.name)}
+  if(d.stat&&(d.stat.updated||0)>(stat.updated||0)){Object.assign(stat,d.stat);store.set('localStorage','omok.stat',stat)}
+  else cloudStat();
+  if(!$('onboard').hidden){hide($('onboard'));afterName()}
+  beat();beatT=setInterval(beat,45000);
+  unsubLinks=fb.query('links','users',u.uid,onLinks);
+  drawAcct();render();
+  if(pendingFire)resumeFire();
+}
+function beat(){if(authUser&&fb&&document.visibilityState!=='hidden')fb.set('users/'+authUser.uid,{seen:Date.now()},true).catch(()=>{})}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')beat()});
+function cloudStat(){
+  if(!authUser||!fb)return;
+  clearTimeout(statT);
+  statT=setTimeout(()=>fb.set('users/'+authUser.uid,{stat:JSON.parse(JSON.stringify(stat))},true).catch(()=>{}),1500);
+}
+const otherOf=l=>l.users.find(x=>x!==authUser.uid);
+const isOn=uid=>!!(finfo[uid]&&Date.now()-(finfo[uid].seen||0)<ONLINE_MS);
+const fname=(uid,l)=>(finfo[uid]&&finfo[uid].name)||(l&&l.names&&l.names[uid])||'친구';
+function onLinks(list){
+  links=list;
+  for(const l of list){
+    const o=otherOf(l);
+    if(o&&!fwatch[o])fwatch[o]=fb.watch('users/'+o,d=>{finfo[o]=d||{};if(mode==='home')render()});
+  }
+  for(const l of list){
+    const v=l.invite;
+    if(v&&v.from!==authUser.uid&&Date.now()-(v.at||0)<10*60000&&!invShown.has(v.id)&&mode!=='online'){invShown.add(v.id);showInvite(l)}
+  }
+  if(mode==='home')render();
+}
+function showInvite(l){
+  invNow=l;const v=l.invite;
+  $('invT').textContent=`${v.name||fname(v.from,l)}님이 대국을 신청했어요`;
+  $('invS').textContent=v.info||'';
+  show($('inviteBox'));
+}
+$('invYes').onclick=async()=>{
+  const l=invNow;hide($('inviteBox'));if(!l)return;
+  const g=await fb.get('games/'+l.invite.id);
+  fb.update('links/'+l.id,{invite:null}).catch(()=>{});
+  if(!g||g.status!=='invite'){const m=$('lobbyMsg');m.textContent='이미 취소된 신청이에요.';m.hidden=false;return}
+  await fb.update('games/'+l.invite.id,{status:'play'});
+  enter('@'+l.invite.id,g.S,g.chat||[]);
+};
+$('invNo').onclick=()=>{
+  const l=invNow;hide($('inviteBox'));if(!l)return;
+  fb.update('games/'+l.invite.id,{status:'declined'}).catch(()=>{});
+  fb.update('links/'+l.id,{invite:null}).catch(()=>{});
+};
+async function addFriend(){
+  const m=$('fMsg'),t=String($('fCode').value||'').replace(/\s+/g,'').toUpperCase();
+  const say_=(x,ok)=>{m.textContent=x;m.hidden=false;m.style.color=ok?'var(--go-text)':''};
+  if(!/^[A-Z0-9]{6}$/.test(t))return say_('친구 코드는 영문·숫자 6자리예요.');
+  if(t===myTag)return say_('내 친구 코드예요. 친구의 코드를 넣어 주세요.');
+  const tg=await fb.get('tags/'+t);
+  if(!tg)return say_('그 코드를 가진 사람을 찾지 못했어요.');
+  const id=lid(authUser.uid,tg.uid),cur=await fb.get('links/'+id);
+  if(cur&&cur.status==='friends')return say_('이미 친구예요.');
+  if(cur&&cur.from!==authUser.uid){await fb.update('links/'+id,{status:'friends'});$('fCode').value='';return say_('친구가 되었어요!',true)}
+  if(cur)return say_('이미 친구 요청을 보냈어요.');
+  await fb.set('links/'+id,{users:[authUser.uid,tg.uid],from:authUser.uid,to:tg.uid,status:'pending',names:{[authUser.uid]:myName()},invite:null,at:Date.now()});
+  $('fCode').value='';say_('친구 요청을 보냈어요. 친구가 수락하면 목록에 나타나요.',true);
+}
+function drawFriends(){
+  const box=$('friendBox');
+  if(!fb){box.hidden=true;return}
+  /* 다시 그려도 입력 중인 친구 코드와 안내 문구는 남긴다. */
+  const old=$('fCode'),keepV=old?old.value:'',keepF=old&&document.activeElement===old,om=$('fMsg'),keepM=om&&!om.hidden?[om.textContent,om.style.color]:null;
+  box.hidden=false;box.textContent='';
+  const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  if(!authUser){
+    const c=el('div','fcard');c.append(el('p',null,'구글로 로그인하면 친구를 추가하고 바로 대국을 신청할 수 있어요.'));
+    const b=el('button','btn go gbtn');b.innerHTML=$('acctIn').innerHTML;b.onclick=signIn;c.append(b);box.append(c);return;
+  }
+  const c=el('div','fcard');
+  const mt=el('div','mytag');mt.append(el('span',null,'내 친구 코드'),el('b',null,myTag||'…'));
+  const cp=el('button','btn',' 복사');cp.textContent='복사';
+  cp.onclick=async()=>{try{await navigator.clipboard.writeText(`오목 친구 코드: ${myTag}`);cp.textContent='복사됨'}catch(e){cp.textContent=myTag}setTimeout(()=>{cp.textContent='복사'},1600)};
+  mt.append(cp);c.append(mt);
+  const row=el('div','row');const inp=el('input');inp.type='text';inp.id='fCode';inp.maxLength=6;inp.placeholder='친구 코드 6자리';inp.autocomplete='off';inp.setAttribute('aria-label','친구 코드');
+  const ab=el('button','btn','친구 추가');ab.onclick=()=>addFriend().catch(()=>{$('fMsg').textContent='잠시 뒤 다시 시도해 주세요.';$('fMsg').hidden=false});
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')ab.click()});
+  row.append(inp,ab);c.append(row);
+  const fm=el('p','msg');fm.id='fMsg';fm.hidden=!keepM;if(keepM){fm.textContent=keepM[0];fm.style.color=keepM[1]}c.append(fm);
+  box.append(c);
+  inp.value=keepV;if(keepF)inp.focus();
+  const me_=authUser.uid,inc=links.filter(l=>l.status==='pending'&&l.to===me_),out=links.filter(l=>l.status==='pending'&&l.from===me_);
+  const fr=links.filter(l=>l.status==='friends').sort((a,b)=>isOn(otherOf(b))-isOn(otherOf(a)));
+  const list=(title,items,mk)=>{if(!items.length)return;box.append(el('div','flabel',title));const L=el('div','flist');items.forEach(l=>L.append(mk(l)));box.append(L)};
+  const rowOf=(l,sub,btns,dot)=>{
+    const r=el('div','frow'),o=otherOf(l),d=el('span','odot'+(dot&&isOn(o)?' on':'')),t=el('div');
+    t.append(el('b',null,fname(o,l)),el('small',null,sub));const a=el('div','acts');btns.forEach(b=>a.append(b));r.append(d,t,a);return r;
+  };
+  const B=(txt,cls,fn)=>{const b=el('button','btn'+(cls?' '+cls:''),txt);b.onclick=fn;return b};
+  list('받은 친구 요청',inc,l=>rowOf(l,'친구가 되고 싶어 해요',[B('수락','go',()=>fb.update('links/'+l.id,{status:'friends'})),B('거절','',()=>fb.del('links/'+l.id).catch(()=>{}))]));
+  list('친구',fr,l=>{const o=otherOf(l),on=isOn(o),seen=finfo[o]&&finfo[o].seen;
+    return rowOf(l,on?'접속 중':seen?`${ago(seen)} 접속`:'오프라인',[B('대국 신청','go',()=>openFriendSetup(o,fname(o,l)))],true)});
+  list('보낸 요청',out,l=>rowOf(l,'수락을 기다리는 중',[B('취소','',()=>fb.del('links/'+l.id).catch(()=>{}))]));
+  if(!fr.length&&!inc.length&&!out.length)box.append(el('p','note','친구 코드를 서로 알려 주고 추가해 보세요.'));
+}
+function openFriendSetup(uid,name){
+  openSetup();friendTarget={uid,name};
+  $('codeSec').hidden=true;$('localGo').hidden=true;
+  $('setupTitle').textContent=`${name}님과 대국`;$('create').textContent='대국 신청 보내기';
+  if(!isOn(uid)){const m=$('setupMsg');m.textContent='친구가 지금 접속해 있지 않아요. 친구가 앱을 열어 두어야 신청을 받을 수 있어요.';m.hidden=false;m.style.color='var(--muted)'}
+}
+async function inviteFriend(){
+  const f=friendTarget,u=authUser.uid,b=$('create');
+  b.disabled=true;
+  try{
+    const s=fresh(chosenRule,chosen());s.seats=[u,f.uid];s.black=u;s.names={[u]:myName(),[f.uid]:f.name};s.fromRoom=true;s.made=Date.now();s.by=u;
+    const gid=await fb.add('games',{users:[u,f.uid],from:u,to:f.uid,status:'invite',S:s,chat:[],at:Date.now()});
+    const tcl=TCS[chosenTc][0];
+    await fb.update('links/'+lid(u,f.uid),{invite:{id:gid,from:u,name:myName(),at:Date.now(),info:`${RULES[chosenRule].short} · ${tcl==='제한 없음'?'시간 제한 없음':tcl}`}});
+    enter('@'+gid,s,[]);
+  }catch(e){const m=$('setupMsg');m.textContent='신청을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.';m.hidden=false}
+  b.disabled=false;
+}
+function cancelInvite(gid){
+  if(!fb||!authUser)return;
+  fb.update('games/'+gid,{status:'cancel'}).catch(()=>{});
+  const o=S.seats.find(x=>x!==authUser.uid);
+  if(o)fb.update('links/'+lid(authUser.uid,o),{invite:null}).catch(()=>{});
+}
+$('waitCancel').onclick=leave;
+function resumeFire(){
+  const p=pendingFire;pendingFire=null;
+  if(p&&authUser&&p.S&&p.S.seats.includes(authUser.uid))enter(p.code,p.S,p.chat);
+  else store.del('sessionStorage','omok.room');
+}
+/* 친구 대국: 판 상태를 Firestore 문서 하나에 두고 양쪽이 지켜본다. */
+function fireNet(gid,h){
+  const path='games/'+gid;let opp=null,oppSeen=0,oppU=null,closed=false;
+  const tell=()=>h.peers(opp&&Date.now()-oppSeen<ONLINE_MS&&fbStatus==='play'?[{id:opp,name:''}]:[]);
+  const un=fb.watch(path,d=>{
+    if(closed||!d)return;
+    const was=fbStatus;fbStatus=d.status||'';
+    if(!opp){opp=(d.users||[]).find(x=>x!==me);if(opp)oppU=fb.watch('users/'+opp,u=>{oppSeen=u&&u.seen||0;tell()})}
+    if(d.S)h.state(d.S);
+    if(Array.isArray(d.chat))h.chat(d.chat);
+    if(d.status==='declined'||d.status==='cancel'){h.ended(d.status);return}
+    if(was!==fbStatus){tell();render()}
+  });
+  const t=setInterval(tell,15000);
+  h.conn(true);
+  return {
+    send(s){
+      const mine=JSON.parse(JSON.stringify(s));delete mine.fromRoom;
+      fb.tx(path,cur=>cur&&cur.S&&cur.S.v>=mine.v?null:{S:mine})
+        .then(ok=>{if(!ok)fb.get(path).then(d=>{if(d&&d.S){S=Object.assign(d.S,{fromRoom:true});save();render()}})})
+        .catch(()=>{});
+    },
+    chat(m){fb.push(path,'chat',m).catch(()=>{})},
+    close(){closed=true;un();oppU&&oppU();clearInterval(t)}
+  };
+}
+function drawAcct(){
+  const b=$('acctBtn');
+  if(authUser){b.className='acct on';b.textContent=(myName()||'나').slice(0,1)}
+  else{b.className='acct';b.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.400 0-8 2.200-8 5v3h16v-3c0-2.800-3.600-5-8-5z"/></svg>'}
+  $('acctT').textContent=authUser?myName():'계정';
+  $('acctS').textContent=authUser?(myTag?`친구 코드 ${myTag}`:''):'로그인하지 않았어요';
+  $('acctIn').hidden=!!authUser;$('acctOut').hidden=!authUser;
+  $('acctNote').textContent=authUser?'이름, 기록, 친구가 이 계정에 저장돼요.':'로그인하면 친구를 추가하고, 휴대폰을 바꿔도 이름과 기록이 그대로 남아요.';
+}
+$('acctBtn').onclick=()=>{drawAcct();show($('acctBox'))};
+$('acctClose').onclick=()=>hide($('acctBox'));
+$('acctIn').onclick=()=>{hide($('acctBox'));signIn()};
+$('acctOut').onclick=async()=>{hide($('acctBox'));if(mode==='online'&&String(code).startsWith('@'))leave();await fb.signOut()};
+$('obGoogle').onclick=signIn;
 
 /* 라이트·다크: 처음엔 기기 설정을 따르고, 고르면 기억한다. */
 const SUN='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.500"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -1428,6 +1729,7 @@ async function whoAmI(){
 }
 function afterName(){
   const saved=store.get('sessionStorage','omok.room');
+  if(saved&&saved.code&&String(saved.code).startsWith('@')){pendingFire=saved;if(authUser)resumeFire();return}
   const h=untid((location.hash||'').slice(1));
   if(saved&&saved.code&&saved.S&&(!h||h===saved.code))return enter(saved.code,saved.S,saved.chat);
   if(h&&!codeErr(h)){$('codeIn').value=showCode(h);joinCode(h)}
@@ -1440,8 +1742,9 @@ $('obGo').onclick=()=>{
 };
 $('nick').addEventListener('change',()=>{
   const v=$('nick').value.trim().slice(0,12);
-  if(v)store.set('localStorage',nickKey(),v);else $('nick').value=store.get('localStorage',nickKey())||'';
+  if(v){store.set('localStorage',nickKey(),v);if(authUser&&fb)fb.set('users/'+authUser.uid,{name:v},true).catch(()=>{})}else $('nick').value=store.get('localStorage',nickKey())||'';
 });
+fireInit();
 (async()=>{
   await whoAmI();
   const n=store.get('localStorage',nickKey());
