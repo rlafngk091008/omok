@@ -179,6 +179,10 @@ input::placeholder{color:var(--muted)}
 .pcard.alt{background:#2748A8}
 .pcard.alt3{background:#B4532A}
 .grid3.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.grid3.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.opt.lv{display:flex;flex-direction:column;align-items:center;gap:1px;padding-left:2px;padding-right:2px;line-height:1.2}
+.opt.lv b{font-size:14px;white-space:nowrap;letter-spacing:-.3px}
+.opt.lv small{font-size:11px;opacity:.65;font-weight:600}
 .pcard.alt2{background:#4B3AA0}
 .pcard .big-ico{position:absolute;right:12px;bottom:10px;width:84px;height:84px;opacity:.95}
 .shd{display:flex;align-items:baseline;justify-content:space-between}
@@ -487,7 +491,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
       <div class="hbody gut">
         <div class="cards">
           <button class="pcard" id="dailyCard"><svg class="bg" id="dailySvg" viewBox="0 0 330 158" preserveAspectRatio="xMaxYMid slice"></svg><span class="veil"></span><span class="txt"><b>오늘의 퍼즐</b><small id="dailySub"></small><span class="tag" id="dailyTag">풀기</span></span></button>
-          <button class="pcard alt3" id="aiCard"><span class="txt"><b>AI와 대결</b><small>입문부터 어려움까지 골라서 둬요</small><span class="tag">대결</span></span><svg class="big-ico" viewBox="0 0 24 24" fill="#FFE3A3"><path d="M11 2h2v2h4a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4zM9 9.500a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zm6 0a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zM8.500 15h7v1.500h-7zM1 10h2v5H1zm20 0h2v5h-2zM8 20h8v2H8z"/></svg></button>
+          <button class="pcard alt3" id="aiCard"><span class="txt"><b>AI와 대결</b><small>왕초보부터 최강까지 10단계로 골라 둬요</small><span class="tag">대결</span></span><svg class="big-ico" viewBox="0 0 24 24" fill="#FFE3A3"><path d="M11 2h2v2h4a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3h4zM9 9.500a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zm6 0a1.500 1.500 0 1 0 0 3 1.500 1.500 0 0 0 0-3zM8.500 15h7v1.500h-7zM1 10h2v5H1zm20 0h2v5h-2zM8 20h8v2H8z"/></svg></button>
           <button class="pcard alt" id="learnCard"><span class="txt"><b>규칙 배우기</b><small>3-3, 4-4, 장목을 그림으로 알아봐요</small><span class="tag">보기</span></span><svg class="big-ico" viewBox="0 0 24 24" fill="#CFE0FF"><path d="M12 3 1 9l11 6 9-4.900V17h2V9zM5 13.200V17c0 1.700 3.100 4 7 4s7-2.300 7-4v-3.800l-7 3.800z"/></svg></button>
           <button class="pcard alt2" id="localCard"><span class="txt"><b>같은 기기에서</b><small>한 화면에서 번갈아 둬요</small><span class="tag">두기</span></span><svg class="big-ico" viewBox="0 0 24 24"><circle cx="9" cy="9" r="7" fill="#111"/><circle cx="16" cy="16" r="7" fill="#F4F3EE"/></svg></button>
         </div>
@@ -586,7 +590,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
     <div class="shead"><button id="aiBack" aria-label="뒤로">‹</button><span>AI와 대결</span><span></span></div>
     <div class="sbody gut">
       <div class="lab">난이도</div>
-      <div class="grid3 g4" id="aiLv"></div>
+      <div class="grid3 g5" id="aiLv"></div>
       <p class="note" id="aiNote"></p>
       <div class="lab">내 돌</div>
       <div class="grid3" id="aiSide"></div>
@@ -1078,39 +1082,51 @@ function vcf(b,c,rule,depth){
   }
   return null;
 }
+/* 단계별 설정: take/block 승리·막기 확률, top 후보 수, noise 흔들림, dw 수비 비중,
+   vcf 내 연속4 [예산,깊이], ov 상대 연속4 [예산,깊이], pool 한 수 앞 살펴볼 후보 수, threat 다음 연속4 보너스 예산, time ms */
+const AIC=[
+  {take:.4,block:.3,top:10,noise:99,dw:.3},
+  {take:.6,block:.5,top:6,noise:99,dw:.35},
+  {take:.8,block:.7,top:6,noise:2,dw:.4},
+  {take:1,block:1,d15:.85,top:4,noise:.8,dw:.65},
+  {take:1,block:1,d15:1,top:2,noise:.3,dw:.85,vcf:[250,4],time:800},
+  {take:1,block:1,top:1,noise:0,dw:.95,vcf:[400,4],time:1000},
+  {mix:[.45,5]},
+  {mix:[.75,5]},
+  {take:1,block:1,dw:1,vcf:[2500,10],ov:[1200,8],pool:8,time:1400},
+  {take:1,block:1,dw:1,vcf:[6000,14],ov:[3000,12],pool:12,threat:600,time:2800}
+];
 function aiMove(moves,rule,level){
   const r=replay(moves,rule);if(!r)return null;
+  let L=AIC[Math.max(0,Math.min(AIC.length-1,level|0))];
+  /* 중간 단계는 강한 수와 보통 수를 섞어 둔다. */
+  if(L.mix)L=Math.random()<L.mix[0]?AIC[8]:AIC[L.mix[1]];
   const b=r.b,c=r.turn,o=3-c;
   if(!moves.length)return 7*N+7;
-  const dw=[0.35,0.6,0.95,1][level];
-  const list=rank(b,c,rule,dw);
+  const list=rank(b,c,rule,L.dw);
   if(!list.length)return null;
-  if(level===0){
-    if(Math.random()<0.6&&list[0].atk>=100000)return list[0].i;
-    const top=list.slice(0,6);return top[Math.floor(Math.random()*top.length)].i;
-  }
-  if(level===1){
-    if(list[0].atk>=100000||list[0].def>=100000)return list[0].i;
-    if(list[0].def>=15000&&Math.random()<0.8)return list[0].i;
-    const top=list.slice(0,5).map(e=>({i:e.i,v:e.v*(0.5+Math.random())}));
+  const win=list.find(e=>e.atk>=100000);if(win&&Math.random()<L.take)return win.i;
+  const block=list.find(e=>e.def>=100000);if(block&&Math.random()<L.block)return block.i;
+  vcfEnd=Date.now()+(L.time||1000);
+  if(L.vcf){vcfBudget=L.vcf[0];const v=vcf(b,c,rule,L.vcf[1]);if(v!=null)return v}
+  if(!L.pool){
+    if(L.d15&&list[0].def>=15000&&Math.random()<L.d15)return list[0].i;
+    const top=list.slice(0,L.top).map(e=>({i:e.i,v:L.noise>=99?Math.random():e.v*(1-L.noise/2+Math.random()*L.noise)}));
     return top.sort((a,b)=>b.v-a.v)[0].i;
   }
-  const win=list.find(e=>e.atk>=100000);if(win)return win.i;
-  const block=list.find(e=>e.def>=100000);if(block)return block.i;
-  vcfEnd=Date.now()+1400;
-  if(level===2){vcfBudget=400;const v2=vcf(b,c,rule,4);return v2!=null?v2:list[0].i}
-  vcfBudget=2500;const v=vcf(b,c,rule,10);if(v!=null)return v;
   /* 상대에게 연속 4 승리가 있으면 그 시작점을 먼저 막는다. */
-  vcfBudget=1200;const ov=vcf(b,o,rule,8);
+  vcfBudget=L.ov[0];const ov=vcf(b,o,rule,L.ov[1]);
   let best=null,bestV=-1e9;
-  const pool=list.slice(0,8);if(ov!=null&&!pool.some(e=>e.i===ov)&&!forbidden(b,ov,c,rule))pool.push({i:ov,v:0});
+  const pool=list.slice(0,L.pool);if(ov!=null&&!pool.some(e=>e.i===ov)&&!forbidden(b,ov,c,rule))pool.push({i:ov,v:0});
   for(const e of pool){
     b[e.i]=c;
     let val=e.v;
     if(winsFor(b,o).length&&!winLine(b,e.i,c,rule))val-=500000;
     else{
-      const rep=rank(b,o,rule,0.9);val-=0.75*(rep.length?rep[0].v:0);
-      if(ov!=null){vcfBudget=500;if(vcf(b,o,rule,8)!=null)val-=200000}
+      const rep=rank(b,o,rule,0.9);
+      val-=0.75*(rep.length?rep[0].v:0);
+      if(ov!=null){vcfBudget=Math.round(L.ov[0]*.4);if(vcf(b,o,rule,L.ov[1])!=null)val-=200000}
+      if(L.threat&&Date.now()<vcfEnd){vcfBudget=L.threat;if(vcf(b,c,rule,8)!=null)val+=60000}
     }
     b[e.i]=0;
     if(val>bestV){bestV=val;best=e.i}
@@ -2462,8 +2478,27 @@ $('rvPlay').onclick=()=>{
 $('rvHint').onclick=()=>{revStop();if(an&&an.res)openAnalysis();else if(!an)runAnalysis();render()};
 
 /* ===== AI 대결 ===== */
-const AILV=[['입문','처음 배우는 사람용이에요. 실수를 자주 해요.'],['쉬움','기본적인 공격과 수비를 해요.'],['보통','4와 열린 3을 놓치지 않아요.'],['어려움','연속 4로 끝내는 수까지 읽어요.']];
-let aiLevel=Math.min(3,Math.max(0,+(store.get('localStorage','omok.aiLv')??1))),aiSide='b',aiBusy=false;
+const AILV=[
+  ['왕초보','오목을 막 배우는 사람용이에요. 다섯이 보여도 놓칠 때가 많아요.'],
+  ['입문','아무 데나 두는 일이 많지만 가끔 날카로워요.'],
+  ['초급','눈앞의 4는 대체로 막지만 큰 그림은 못 봐요.'],
+  ['쉬움','기본적인 공격과 수비를 해요.'],
+  ['초중급','열린 3을 거의 놓치지 않고, 짧은 연속 4를 노려요.'],
+  ['보통','4와 열린 3을 놓치지 않아요.'],
+  ['중급','절반쯤은 한 수 앞을 내다보고 둬요.'],
+  ['중상급','대부분 한 수 앞을 보고 상대의 연속 4를 막아요.'],
+  ['어려움','연속 4로 끝내는 수까지 읽어요.'],
+  ['최강','더 깊이 읽고, 다음 공격까지 준비하는 수를 골라요. 생각이 조금 길어요.']
+];
+const AI_OLD={'0':1,'1':3,'2':5,'3':8};
+let aiLevel=(()=>{const v=store.get('localStorage','omok.aiLv2');if(v!=null)return Math.min(9,Math.max(0,+v||0));const o=store.get('localStorage','omok.aiLv');return o!=null?(AI_OLD[String(o)]??3):3})(),aiSide='b',aiBusy=false;
+/* 예전(4단계) 기록도 새 단계에 맞춰 함께 센다. */
+function aiRec(s,lv){
+  const a=(s&&s.ai)||{},r={w:0,l:0,d:0};
+  const add=x=>{if(x){r.w+=x.w||0;r.l+=x.l||0;r.d+=x.d||0}};
+  add(a['n'+lv]);for(const [k,v] of Object.entries(AI_OLD))if(v===lv)add(a[k]);
+  return r;
+}
 function aiTurn(){
   if(aiBusy)return;
   aiBusy=true;
@@ -2483,7 +2518,7 @@ function recordAi(res){
   stat.ai=stat.ai||{};
   if(stat.aiLast===key)return;
   stat.aiLast=key;
-  const k=String(aiLevel),r=stat.ai[k]||{w:0,l:0,d:0},c=colorOf(me);
+  const k='n'+aiLevel,r=stat.ai[k]||{w:0,l:0,d:0},c=colorOf(me);
   const kind=!res.color?'d':res.color===c?'w':'l';
   r[kind]++;stat.ai[k]=r;
   stat.log=stat.log||[];
@@ -2492,14 +2527,14 @@ function recordAi(res){
   touchDay();saveStat();
 }
 function drawAiSheet(){
-  $('aiLv').innerHTML=AILV.map((l,k)=>`<button class="opt" data-k="${k}" aria-pressed="${k===aiLevel}">${l[0]}</button>`).join('');
+  $('aiLv').innerHTML=AILV.map((l,k)=>`<button class="opt lv" data-k="${k}" aria-pressed="${k===aiLevel}"><b>${l[0]}</b><small>${AI_RT[k]}</small></button>`).join('');
   $('aiSide').innerHTML=[['b','흑 (먼저)'],['w','백'],['r','무작위']].map(([k,l])=>`<button class="opt" data-k="${k}" aria-pressed="${k===aiSide}">${l}</button>`).join('');
   $('aiRule').innerHTML=Object.entries(RULES).map(([k,v])=>`<button class="opt" data-k="${k}" aria-pressed="${k===chosenRule}">${v.short}</button>`).join('');
-  const r=(stat.ai||{})[String(aiLevel)];
-  $('aiNote').textContent=AILV[aiLevel][1]+(r?` 지금까지 ${r.w}승 ${r.l}패${r.d?` ${r.d}무`:''}.`:'');
+  const r=aiRec(stat,aiLevel),any=r.w+r.l+r.d;
+  $('aiNote').textContent=`${aiLevel+1}단계 · 레이팅 ${AI_RT[aiLevel]} · `+AILV[aiLevel][1]+(any?` 지금까지 ${r.w}승 ${r.l}패${r.d?` ${r.d}무`:''}.`:'');
 }
 function openAi(){hide($('setup'));drawAiSheet();show($('aiSheet'))}
-$('aiLv').onclick=e=>{const b=e.target.closest('button');if(b){aiLevel=+b.dataset.k;store.set('localStorage','omok.aiLv',aiLevel);drawAiSheet()}};
+$('aiLv').onclick=e=>{const b=e.target.closest('button');if(b){aiLevel=+b.dataset.k;store.set('localStorage','omok.aiLv2',aiLevel);drawAiSheet()}};
 $('aiSide').onclick=e=>{const b=e.target.closest('button');if(b){aiSide=b.dataset.k;drawAiSheet()}};
 $('aiRule').onclick=e=>{const b=e.target.closest('button');if(b){chosenRule=b.dataset.k;drawAiSheet();drawSetup()}};
 $('aiBack').onclick=()=>hide($('aiSheet'));
@@ -2643,7 +2678,7 @@ function avatarSvg(n,name){
   return `<svg class="avsvg" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="${c}"/>${inner}</svg>`;
 }
 const ROBOT_AV='<svg class="avsvg" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" fill="#B4532A"/><rect x="10" y="13" width="20" height="16" rx="4" fill="#FFE3A3"/><circle cx="16" cy="20" r="2.2" fill="#B4532A"/><circle cx="24" cy="20" r="2.2" fill="#B4532A"/><rect x="15" y="24.5" width="10" height="2" rx="1" fill="#B4532A"/><path d="M20 13V9" stroke="#FFE3A3" stroke-width="2"/><circle cx="20" cy="8" r="2" fill="#FFE3A3"/></svg>';
-const AI_RT=[600,900,1200,1500];
+const AI_RT=[400,550,700,850,1000,1150,1300,1450,1600,1800];
 $('meAva').onclick=()=>openProfile();
 
 /* ===== 업적 ===== */
@@ -2656,9 +2691,10 @@ const ACH=[
   ['p10','퍼즐 10개','퍼즐을 10개 풀었어요','P',s=>((s.ez&&s.ez.n)||0)+((s.solved||[]).length)>=10,'#8A55D6'],
   ['p50','퍼즐 50개','퍼즐을 50개 풀었어요','50',s=>((s.ez&&s.ez.n)||0)+((s.solved||[]).length)>=50,'#6E59A5'],
   ['dly','오늘의 퍼즐','오늘의 퍼즐을 처음 풀었어요','D',s=>!!s.daily,'#1F9AA6'],
-  ['ai1','AI 쉬움 격파','AI 쉬움 단계를 이겼어요','쉬',s=>(((s.ai||{})['1'])||{}).w>0,'#7FB24A'],
-  ['ai2','AI 보통 격파','AI 보통 단계를 이겼어요','보',s=>(((s.ai||{})['2'])||{}).w>0,'#2EAD5B'],
-  ['ai3','AI 어려움 격파','AI 어려움 단계를 이겼어요','어',s=>(((s.ai||{})['3'])||{}).w>0,'#C2407A'],
+  ['ai1','AI 쉬움 격파','AI 쉬움 단계를 이겼어요','쉬',s=>aiRec(s,3).w>0,'#7FB24A'],
+  ['ai2','AI 보통 격파','AI 보통 단계를 이겼어요','보',s=>aiRec(s,5).w>0,'#2EAD5B'],
+  ['ai3','AI 어려움 격파','AI 어려움 단계를 이겼어요','어',s=>aiRec(s,8).w>0,'#C2407A'],
+  ['ai9','AI 최강 격파','AI 최강 단계를 이겼어요','강',s=>aiRec(s,9).w>0,'#1A1F2B'],
   ['ls','레슨 졸업','돌쌤 레슨을 모두 마쳤어요','졸',s=>Object.keys(s.lessons||{}).length>=LS.length,'#B4532A'],
   ['fr1','첫 친구','친구를 처음 사귀었어요','친',s=>(s.fr||0)>=1,'#4B5563']
 ];
@@ -2707,7 +2743,7 @@ function openProfile(uid){
   body.append(el('div','lab','소개'));
   if(mine){const ta=el('textarea','bio');ta.maxLength=80;ta.placeholder='나를 한 줄로 소개해 보세요';ta.value=stat.bio||'';ta.onchange=()=>{stat.bio=ta.value.slice(0,80);saveStat()};body.append(ta)}
   else body.append(el('p','biotxt',st.bio||'소개가 아직 없어요.'));
-  const aiTop=[3,2,1,0].find(k=>(((st.ai||{})[String(k)])||{}).w>0);
+  const aiTop=[9,8,7,6,5,4,3,2,1,0].find(k=>aiRec(st,k).w>0);
   const tiles=el('div','tiles');
   tiles.innerHTML=[[ICON.rate,esc(st.rating||1200),'대국 레이팅'],[ICON.best,esc(st.prating||1000),'퍼즐 레이팅'],[ICON.win,`${esc(st.w||0)}승 ${esc(st.l||0)}패`,'친구 전적'],[ROBOT_AV,aiTop==null?'-':AILV[aiTop][0],'AI 최고']]
     .map(([i,v,l])=>`<div class="tile">${i}<b>${v}</b><span>${l}</span></div>`).join('');
