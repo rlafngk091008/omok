@@ -1085,9 +1085,11 @@ const PATS=[['xxxxx',100000],['.xxxx.',15000],['xxxx.',3000],['.xxxx',3000],['x.
   ['xxx..',220],['..xxx',220],['x.xx.',200],['.xx.x',200],['xx.x.',200],['.x.xx',200],['x..xx',150],['xx..x',150],['x.x.x',150],
   ['..xx..',140],['.x.x.',90],['.xx.',60],['xx',18],['x',3]];
 function lineOf(b,x,y,dx,dy,c){let s='';for(let k=-5;k<=5;k++){if(!k){s+='x';continue}const v=at(b,x+k*dx,y+k*dy);s+=v===c?'x':v===0?'.':'o'}return s}
+const DS=new Map();
 function dirScore(str){
-  for(const [p,v] of PATS){let i=str.indexOf(p);while(i>=0){if(i<=5&&i+p.length>5)return v;i=str.indexOf(p,i+1)}}
-  return 0;
+  let r=DS.get(str);if(r!==undefined)return r;r=0;
+  out:for(const [p,v] of PATS){let i=str.indexOf(p);while(i>=0){if(i<=5&&i+p.length>5){r=v;break out}i=str.indexOf(p,i+1)}}
+  DS.set(str,r);return r;
 }
 function placeScore(b,i,c){
   const x=i%N,y=(i-x)/N;let sum=0,fours=0,threes=0;
@@ -1120,9 +1122,9 @@ function vcf(b,c,rule,depth){
   if(depth<=0||vcfBudget--<=0||Date.now()>vcfEnd)return null;
   const o=3-c;
   for(const i of aiCands(b,2)){
-    if(forbidden(b,i,c,rule))continue;
     const x=i%N,y=(i-x)/N;
-    if(!DIRS.some(([dx,dy])=>dirScore(lineOf(b,x,y,dx,dy,c))>=3000))continue;
+    if(!DIRS.some(([dx,dy])=>lineCnt(b,x,y,dx,dy,c,4)>=3&&dirScore(lineOf(b,x,y,dx,dy,c))>=3000))continue;
+    if(forbidden(b,i,c,rule))continue;
     b[i]=c;
     if(winLine(b,i,c,rule)){b[i]=0;return i}
     const w=fivesNear(b,i,c,rule);
@@ -1140,6 +1142,75 @@ function vcf(b,c,rule,depth){
   }
   return null;
 }
+/* 연속 위협 승리(VCT): 4나 열린 3으로 계속 몰아붙여 이기는 수순을 찾는다.
+   상대가 막을 수 있는 자리를 모두 시험해 보고, 어느 쪽으로 막아도 이기면 승리로 본다. */
+let vctBudget=0;
+function lineCnt(b,x,y,dx,dy,c,r){let n=0;for(let k=-r;k<=r;k++){if(k&&at(b,x+k*dx,y+k*dy)===c)n++}return n}
+function threatDirs(b,i,c){
+  const x=i%N,y=(i-x)/N;let s=0;const dirs=[];
+  for(const [dx,dy] of DIRS){if(lineCnt(b,x,y,dx,dy,c,3)<2)continue;const v=dirScore(lineOf(b,x,y,dx,dy,c));if(v>=1600){dirs.push([dx,dy]);if(v>s)s=v}}
+  return {s:s+dirs.length*500,dirs};
+}
+/* i에 두어 4나 열린 3을 만들었을 때, 상대가 어떻게 막아도 이기는지 */
+function threatWins(b,c,rule,i,dirs,depth){
+  const o=3-c;
+  b[i]=c;
+  if(winLine(b,i,c,rule)){b[i]=0;return true}
+  const w=fivesNear(b,i,c,rule);let ok=false;
+  if(w.length>=2)ok=true;
+  else if(w.length===1){
+    const d=w[0];
+    if(forbidden(b,d,o,rule))ok=true;
+    else{b[d]=o;ok=!winLine(b,d,o,rule)&&vct(b,c,rule,depth-1,d)!=null;b[d]=0}
+  }else if(dirs.length){
+    /* 열린 3: 막는 자리 + 상대가 4로 반격하는 자리를 모두 시험 */
+    const x=i%N,y=(i-x)/N,def=new Set();
+    for(const [dx,dy] of dirs)for(let k=-4;k<=4;k++){if(!k)continue;const px=x+k*dx,py=y+k*dy;if(at(b,px,py)===0)def.add(py*N+px)}
+    for(const j of aiCands(b,1)){if(def.has(j))continue;const jx=j%N,jy=(j-jx)/N;if(DIRS.some(([dx,dy])=>lineCnt(b,jx,jy,dx,dy,o,4)>=3&&dirScore(lineOf(b,jx,jy,dx,dy,o))>=3000))def.add(j)}
+    ok=def.size>0;
+    for(const d of def){
+      if(forbidden(b,d,o,rule))continue;
+      b[d]=o;const r=winLine(b,d,o,rule)?null:vct(b,c,rule,depth-1,d);b[d]=0;
+      if(r==null){ok=false;break}
+    }
+  }
+  b[i]=0;
+  return ok;
+}
+function vct(b,c,rule,depth,last){
+  if(depth<=0||vctBudget--<=0||Date.now()>vcfEnd)return null;
+  const o=3-c;
+  if(last!=null&&fivesNear(b,last,o,rule).length)return null;
+  const cs=[];
+  for(const i of aiCands(b,2)){const t=threatDirs(b,i,c);if(t.dirs.length)cs.push({i,s:t.s,dirs:t.dirs})}
+  cs.sort((a,b)=>b.s-a.s);
+  for(const {i,dirs} of cs.slice(0,14)){
+    if(forbidden(b,i,c,rule))continue;
+    if(threatWins(b,c,rule,i,dirs,depth))return i;
+  }
+  return null;
+}
+/* 이 수가 이미 있던 승리 수순을 이어 가는지 */
+function keepsWin(b,c,rule,p,budget){
+  const t=threatDirs(b,p,c);
+  b[p]=c;const four=fivesNear(b,p,c,rule).length;b[p]=0;
+  if(!t.dirs.length&&!four)return false;
+  vctBudget=budget;
+  for(let d=2;d<=7&&vctBudget>0&&Date.now()<vcfEnd;d+=2)if(threatWins(b,c,rule,p,t.dirs,d))return true;
+  return false;
+}
+let seqSure=true,seqLeft=1;
+function seqQuick(b,c,rule,fb,tb){const r=winSeq(b,c,rule,fb,10,tb,7);seqSure=r!=null||(vcfBudget>0&&seqLeft>0&&Date.now()<=vcfEnd);return r}
+/* VCF를 먼저 찾고, 없으면 VCT까지 찾는다. */
+function winSeq(b,c,rule,fb,fd,tb,td){
+  vcfBudget=fb;seqLeft=1;const f=vcf(b,c,rule,fd);if(f!=null)return f;
+  if(!tb||Date.now()>vcfEnd)return null;
+  if(winsFor(b,3-c).length)return null;
+  /* 얕은 깊이부터 차례로 늘려 가며 찾는다(반복 심화). */
+  let left=tb;
+  for(let d=3;d<=td&&left>0&&Date.now()<vcfEnd;d+=2){vctBudget=left;const r=vct(b,c,rule,d,null);left=vctBudget;if(r!=null)return r}
+  seqLeft=left;return null;
+}
 /* 단계별 설정: take/block 승리·막기 확률, top 후보 수, noise 흔들림, dw 수비 비중,
    vcf 내 연속4 [예산,깊이], ov 상대 연속4 [예산,깊이], pool 한 수 앞 살펴볼 후보 수, threat 다음 연속4 보너스 예산, time ms */
 const AIC=[
@@ -1152,7 +1223,7 @@ const AIC=[
   {mix:[.45,5]},
   {mix:[.75,5]},
   {take:1,block:1,dw:1,vcf:[2500,10],ov:[1200,8],pool:8,time:1400},
-  {take:1,block:1,dw:1,vcf:[6000,14],ov:[3000,12],pool:12,threat:600,time:2800}
+  {take:1,block:1,dw:1,vcf:[6000,14],vct:1500,ov:[3000,12],ovt:800,pool:12,threat:600,time:3000}
 ];
 function aiMove(moves,rule,level){
   const r=replay(moves,rule);if(!r)return null;
@@ -1166,14 +1237,14 @@ function aiMove(moves,rule,level){
   const win=list.find(e=>e.atk>=100000);if(win&&Math.random()<L.take)return win.i;
   const block=list.find(e=>e.def>=100000);if(block&&Math.random()<L.block)return block.i;
   vcfEnd=Date.now()+(L.time||1000);
-  if(L.vcf){vcfBudget=L.vcf[0];const v=vcf(b,c,rule,L.vcf[1]);if(v!=null)return v}
+  if(L.vcf){const v=L.vct?winSeq(b,c,rule,L.vcf[0],L.vcf[1],L.vct,7):(vcfBudget=L.vcf[0],vcf(b,c,rule,L.vcf[1]));if(v!=null)return v}
   if(!L.pool){
     if(L.d15&&list[0].def>=15000&&Math.random()<L.d15)return list[0].i;
     const top=list.slice(0,L.top).map(e=>({i:e.i,v:L.noise>=99?Math.random():e.v*(1-L.noise/2+Math.random()*L.noise)}));
     return top.sort((a,b)=>b.v-a.v)[0].i;
   }
   /* 상대에게 연속 4 승리가 있으면 그 시작점을 먼저 막는다. */
-  vcfBudget=L.ov[0];const ov=vcf(b,o,rule,L.ov[1]);
+  const ov=L.ovt?winSeq(b,o,rule,L.ov[0],L.ov[1],L.ovt,5):(vcfBudget=L.ov[0],vcf(b,o,rule,L.ov[1]));
   let best=null,bestV=-1e9;
   const pool=list.slice(0,L.pool);if(ov!=null&&!pool.some(e=>e.i===ov)&&!forbidden(b,ov,c,rule))pool.push({i:ov,v:0});
   for(const e of pool){
@@ -1183,7 +1254,7 @@ function aiMove(moves,rule,level){
     else{
       const rep=rank(b,o,rule,0.9);
       val-=0.75*(rep.length?rep[0].v:0);
-      if(ov!=null){vcfBudget=Math.round(L.ov[0]*.4);if(vcf(b,o,rule,L.ov[1])!=null)val-=200000}
+      if(ov!=null){const again=L.ovt?winSeq(b,o,rule,Math.round(L.ov[0]*.4),L.ov[1],Math.round(L.ovt*.4),5):(vcfBudget=Math.round(L.ov[0]*.4),vcf(b,o,rule,L.ov[1]));if(again!=null)val-=200000}
       if(L.threat&&Date.now()<vcfEnd){vcfBudget=L.threat;if(vcf(b,c,rule,8)!=null)val+=60000}
     }
     b[e.i]=0;
@@ -1213,11 +1284,11 @@ function evalSide(b,c,rule,list,P,my){
 }
 function analyzeMove(b,c,rule,p,k){
   const o=3-c;
-  vcfEnd=Date.now()+600;
+  vcfEnd=Date.now()+900;
   const list=rank(b,c,rule,0.9);
   if(!list.length)return {cls:'open',e:0,why:'가운데에서 대국을 시작했어요.'};
   const fives=list.filter(e=>e.atk>=100000),blocks=list.filter(e=>e.def>=100000).map(e=>e.i);
-  const my=k>=4&&!fives.length&&!blocks.length?vcfQuick(b,c,rule,500,8):null;
+  const my=k>=4&&!fives.length&&!blocks.length?seqQuick(b,c,rule,700,1500):null;
   const P=evalPool(b,c,rule,list,p),mine=P.mine;
   const e=evalSide(b,c,rule,list,P,my),R=x=>(x.e=e,x);
   b[p]=c;const won=!!winLine(b,p,c,rule);b[p]=0;
@@ -1229,17 +1300,16 @@ function analyzeMove(b,c,rule,p,k){
   }
   if(k<2)return R({cls:'open',why:k?'첫 돌 가까이에 붙여 자리를 잡았어요.':'가운데에서 대국을 시작했어요.'});
   if(my!=null){
-    if(p===my)return R({cls:'great',why:'연속 4로 승리를 굳히는 수예요. 상대는 계속 막기만 해야 해요.'});
-    b[p]=c;let keep=false;const w=fivesNear(b,p,c,rule);
-    if(w.length>=2)keep=true;
-    else if(w.length===1&&!forbidden(b,w[0],o,rule)){b[w[0]]=o;keep=vcfQuick(b,c,rule,400,8)!=null;b[w[0]]=0}
-    b[p]=0;
-    return keep?R({cls:'great',why:'연속 4 수순을 이어 가는 정확한 수예요.'}):R({cls:'miss',best:my,why:'4를 연달아 두어 이기는 수순이 있었는데 놓쳤어요.'});
+    if(p===my)return R({cls:'great',why:'4와 열린 3으로 몰아붙여 승리를 굳히는 수예요. 상대는 막기만 해야 해요.'});
+    const keep=keepsWin(b,c,rule,p,1200);
+    return keep?R({cls:'great',why:'이기는 수순을 정확히 이어 가는 수예요. 상대는 막기만 해야 해요.'}):R({cls:'miss',best:my,why:'4와 열린 3으로 몰아붙여 이기는 수순이 있었는데 놓쳤어요.'});
   }
   if(k>=4){
-    b[p]=c;const opp=winsFor(b,o).length?null:vcfQuick(b,o,rule,400,8);b[p]=0;
+    b[p]=c;const opp=winsFor(b,o).length?null:seqQuick(b,o,rule,500,1200);b[p]=0;
     if(opp!=null){
-      for(const x of list.slice(0,6)){if(x.i===p)continue;b[x.i]=c;const ok=!winsFor(b,o).length&&vcfQuick(b,o,rule,300,8)==null&&vcfSure;b[x.i]=0;if(Date.now()>vcfEnd)break;if(ok)return R({cls:'blunder',best:x.i,why:'상대에게 4를 연달아 두어 이기는 길을 열어 줬어요.'})}
+      vcfEnd=Math.max(vcfEnd,Date.now()+1200);
+      const alts=[P.bi,...list.slice(0,5).map(x=>x.i)].filter((x,j,A)=>x!==p&&A.indexOf(x)===j);
+      for(const xi of alts){const x={i:xi};b[x.i]=c;const ok=!winsFor(b,o).length&&seqQuick(b,o,rule,500,900)==null&&seqSure;b[x.i]=0;if(Date.now()>vcfEnd)break;if(ok)return R({cls:'blunder',best:x.i,why:'상대에게 4와 열린 3으로 몰아붙여 이기는 길을 열어 줬어요.'})}
     }
   }
   const loss=P.bi===p?0:(P.bv-P.mv)/Math.max(list[0].v,300);
@@ -2529,7 +2599,7 @@ $('acctOut').onclick=async()=>{
 /* 이 기기에서 계정 흔적을 지우고 처음 화면으로 돌아간다. 판·돌 테마 같은 기기 설정은 그대로 둔다. */
 function wipeLocal(){
   replaceStat({since:Date.now()});
-  store.del('localStorage',nickKey());store.del('sessionStorage','omok.room');
+  store.del('localStorage',nickKey());store.del('localStorage','omok.an2');store.del('sessionStorage','omok.room');
   for(const k of Object.keys(localStorage||{}))if(k.startsWith('omok.read.'))store.del('localStorage',k);
   $('nick').value='';$('obName').value='';$('obGo').disabled=true;
   links=[];finfo={};myTag='';dmOpen=null;dmBoot=false;dmSeen.clear();
@@ -2566,8 +2636,15 @@ function anSym(k){
 async function runAnalysis(){
   const mv=[...S.moves],g=S.game;
   if(mv.length<3){an=null;return}
-  an={busy:true,prog:0,shut:false};render();openAnalysis();
-  const out=await anAsync(mv,S.rule,x=>{if(an&&an.busy){an.prog=x;drawProg()}});
+  /* 한 번 분석한 대국은 이 기기에 저장해 두고 바로 보여 준다. */
+  const ck=S.rule+':'+mv.join('.');let cache={};
+  try{cache=JSON.parse(store.get('localStorage','omok.an2')||'{}')||{}}catch(e){cache={}}
+  let out=cache[ck];
+  if(!out){
+    an={busy:true,prog:0,shut:false};render();openAnalysis();
+    out=await anAsync(mv,S.rule,x=>{if(an&&an.busy){an.prog=x;drawProg()}});
+    try{out.t=Date.now();cache[ck]=out;const ks=Object.keys(cache).sort((a,b)=>cache[b].t-cache[a].t);for(const k of ks.slice(20))delete cache[k];store.set('localStorage','omok.an2',JSON.stringify(cache))}catch(e){}
+  }else an={busy:true,shut:false};
   if(mode!=='review'||S.game!==g||S.moves.join()!==mv.join())return;
   const shut=an&&an.shut;
   an={res:out.res,fin:out.fin};
