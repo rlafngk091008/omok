@@ -1151,7 +1151,14 @@ async function ensureDaily(){
 }
 
 /* 내 기록: 이 기기에만 저장된다. */
-const stat=Object.assign({w:0,l:0,d:0,cur:0,best:0,run:0,day:'',last:'',log:[],solved:[],daily:0,ez:{n:0,run:0,best:0}},store.get('localStorage','omok.stat')||{});
+const statDefaults=()=>({w:0,l:0,d:0,cur:0,best:0,run:0,day:'',last:'',log:[],solved:[],daily:0,ez:{n:0,run:0,best:0}});
+const stat=Object.assign(statDefaults(),store.get('localStorage','omok.stat')||{});
+/* 기록 통째로 바꾸기: 로그아웃하면 비우고, 로그인하면 계정 것으로 채운다. */
+function replaceStat(src){
+  for(const k of Object.keys(stat))delete stat[k];
+  Object.assign(stat,statDefaults(),JSON.parse(JSON.stringify(src||{})));
+  store.set('localStorage','omok.stat',stat);
+}
 const saveStat=()=>{stat.updated=Date.now();checkAch();store.set('localStorage','omok.stat',stat);cloudStat()};
 function touchDay(){
   const t=dayStr(new Date()),y=dayStr(new Date(Date.now()-864e5));
@@ -2039,7 +2046,8 @@ async function onAuth(u){
   }else if(!d.tag){d.tag=await makeTag(u.uid);await fb.set(ref,{tag:d.tag},true)}
   myTag=d.tag||'';
   if(d.name){$('nick').value=d.name;store.set('localStorage',nickKey(),d.name)}
-  if(d.stat&&(d.stat.updated||0)>(stat.updated||0)){Object.assign(stat,d.stat);store.set('localStorage','omok.stat',stat)}
+  /* 계정에 저장된 기록이 있으면 그것을 그대로 쓴다. 처음 로그인한 계정이면 지금 기기의 기록을 계정으로 올린다. */
+  if(d.stat)replaceStat(d.stat);
   else cloudStat();
   if(!d.created)fb.set(ref,{created:stat.since||Date.now()},true).catch(()=>{});
   checkAch(true);
@@ -2268,7 +2276,24 @@ function drawAcct(){
 $('acctBtn').onclick=()=>{drawAcct();show($('acctBox'))};
 $('acctClose').onclick=()=>hide($('acctBox'));
 $('acctIn').onclick=()=>{hide($('acctBox'));signIn()};
-$('acctOut').onclick=async()=>{hide($('acctBox'));if(mode==='online'&&String(code).startsWith('@'))leave();await fb.signOut()};
+$('acctOut').onclick=async()=>{
+  hide($('acctBox'));
+  if(mode!=='home')leave();
+  /* 로그아웃 전에 마지막 기록을 계정에 저장해 둔다. */
+  if(authUser&&fb){clearTimeout(statT);try{await fb.set('users/'+authUser.uid,{stat:JSON.parse(JSON.stringify(stat)),name:myName()},true)}catch(e){}}
+  await fb.signOut();
+  wipeLocal();
+};
+/* 이 기기에서 계정 흔적을 지우고 처음 화면으로 돌아간다. 판·돌 테마 같은 기기 설정은 그대로 둔다. */
+function wipeLocal(){
+  replaceStat({since:Date.now()});
+  store.del('localStorage',nickKey());store.del('sessionStorage','omok.room');
+  for(const k of Object.keys(localStorage||{}))if(k.startsWith('omok.read.'))store.del('localStorage',k);
+  $('nick').value='';$('obName').value='';$('obGo').disabled=true;
+  links=[];finfo={};myTag='';dmOpen=null;dmBoot=false;dmSeen.clear();
+  tab='tHome';render();
+  show($('onboard'));
+}
 $('obGoogle').onclick=signIn;
 
 /* ===== 복기 ===== */
