@@ -476,6 +476,26 @@ body.wg .mlist{flex:1 1 120px;min-height:90px;overflow:auto;background:var(--bg)
 #game.rv .lbar{height:8px;background:#F4F3EE;box-shadow:inset 0 0 0 1px #0002}
 #game.rv .lbar i{background:#1B1B1B;border-radius:0}
 #game.rv .coach{min-height:0}
+/* 모바일 복기: 말풍선 높이를 고정하고 그만큼 판을 줄여 화면 안에 맞춘다 */
+body:not(.wg) #game.rv{--cw:100vw;--bw:max(230px,calc(100dvh - 370px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)))}
+body:not(.wg) #game.rv .bwrap{width:min(100%,var(--bw));margin-inline:auto}
+body:not(.wg) #game.rv .player{height:40px;gap:8px}
+body:not(.wg) #game.rv .player .ava{width:30px;height:30px}
+body:not(.wg) #game.rv .player .dot{display:none}
+body:not(.wg) #game.rv .pinfo{display:flex;align-items:baseline;gap:8px;min-width:0}
+body:not(.wg) #game.rv .pname{font-size:15px}
+body:not(.wg) #game.rv .psub{font-size:12px}
+@media (max-height:620px){
+  body:not(.wg) #game.rv .strip{display:none}
+  body:not(.wg) #game.rv{--bw:max(200px,calc(100dvh - 340px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)))}
+}
+body:not(.wg) #game.rv .coach{height:96px;padding-block:4px;align-items:center;gap:8px}
+body:not(.wg) #game.rv .coachav{width:44px;height:44px}
+body:not(.wg) #game.rv .bub{padding:7px 10px 7px;height:100%;display:flex;flex-direction:column}
+body:not(.wg) #game.rv .rvh{font-size:13.5px;margin-bottom:2px}
+body:not(.wg) #game.rv .rvh .ic{width:19px;height:19px;font-size:10px}
+body:not(.wg) #game.rv .bub p{flex:1;min-height:0;font-size:13px;line-height:1.32;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+body:not(.wg) #game.rv .lbar{flex:none;height:6px;margin-top:4px}
 .ancard .mbody{max-height:min(64vh,620px)}
 .anacc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px}
 .anacc div{background:#8881;border-radius:8px;padding:10px;text-align:center}
