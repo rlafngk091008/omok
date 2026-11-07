@@ -442,6 +442,22 @@ body.wg .mlist{flex:1 1 120px;min-height:90px;overflow:auto;background:var(--bg)
 .mrow:nth-child(odd){background:#8881}
 .mrow .n{color:var(--muted);font-weight:500}
 .mrow .m{color:var(--soft)}
+.q{font-weight:900;font-size:.85em;margin-left:3px}
+.ancard .mbody{max-height:70vh;overflow:auto;padding:4px 16px 16px}
+.anacc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px}
+.anacc div{background:#8881;border-radius:8px;padding:10px;text-align:center}
+.anacc div.me{outline:2px solid var(--go)}
+.anacc b{display:block;font-size:28px;line-height:1.15}
+.anacc span{font-size:13px;color:var(--soft)}
+.antab{width:100%;border-collapse:collapse;font-size:14px}
+.antab td{padding:4px 2px}
+.antab td:first-child{display:flex;align-items:center}
+.antab td:nth-child(n+2){text-align:center;font-weight:800;width:44px}
+.antab .ic{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:900;margin-right:6px;vertical-align:-4px}
+.anh{font-size:14px;margin:14px 0 6px;color:var(--soft)}
+.ankey{display:grid;gap:6px}
+.ankey button{display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border-radius:8px;background:#8881;font-size:14px;color:var(--fg)}
+.ankey .e{color:var(--soft);font-size:14px}
 .mrow .m.cur{color:var(--fg);text-decoration:underline;text-decoration-color:var(--go);text-decoration-thickness:2px;text-underline-offset:4px}
 .mlist .e{color:var(--muted);padding:8px 14px;margin:0;font-size:14px}
 body.wg .gpanel .slot{padding-inline:0;height:auto;flex:none}
@@ -631,7 +647,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
         <radialGradient id="sw" cx=".36" cy=".3" r=".85"><stop offset="0" stop-color="#FFF"/><stop offset=".75" stop-color="#EFEEE8"/><stop offset="1" stop-color="#CFCDC4"/></radialGradient>
       </defs>
       <rect id="bbg" width="620" height="620" fill="#DDB66C"/>
-      <g id="hl"></g><g id="pickH"><rect x="-20" y="-20" width="40" height="40" fill="#6E9FFF" opacity=".6"/></g><g id="grid"></g><g id="marks"></g><g id="stones"></g><g id="nums" pointer-events="none"></g><g id="fx"></g><circle id="hoverC" r="18.5" opacity="0" pointer-events="none"/><g id="pickG" visibility="hidden" pointer-events="none"><circle id="pickI" r="18.5" stroke="#0004" stroke-width=".7" opacity=".85"/></g>
+      <g id="hl"></g><g id="pickH"><rect x="-20" y="-20" width="40" height="40" fill="#6E9FFF" opacity=".6"/></g><g id="grid"></g><g id="marks"></g><g id="stones"></g><g id="nums" pointer-events="none"></g><g id="anno" pointer-events="none"></g><g id="fx"></g><circle id="hoverC" r="18.5" opacity="0" pointer-events="none"/><g id="pickG" visibility="hidden" pointer-events="none"><circle id="pickI" r="18.5" stroke="#0004" stroke-width=".7" opacity=".85"/></g>
     </svg>
     <div class="wait" id="wait" hidden>
       <div class="wcard">
@@ -658,7 +674,7 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
     <button class="btn" id="rvFirst" aria-label="처음으로">⏮</button>
     <button class="btn" id="rvPlay">자동 재생</button>
     <button class="btn" id="rvLast" aria-label="마지막으로">⏭</button>
-    <button class="btn go" id="rvHint">AI 추천 수</button>
+    <button class="btn go" id="rvHint">분석</button>
   </div>
   <div class="sr" id="status" role="status" aria-live="polite"></div>
   <aside class="gpanel" id="gpanel"><div class="mlist" id="mlist"></div></aside>
@@ -756,6 +772,19 @@ body.wg .gpanel .chead{height:38px;font-size:14px}
     <svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 1 1-12 0c0-2.500 1-4 2-5 .3 1.500 1 2.500 2 3 0-3.500.2-7 2-10z" fill="#FF9F2E"/><path d="M12 12c.5 2 3 3 3 5.500a3 3 0 1 1-6 0c0-1.200.5-2 1-2.500.2.800.6 1.200 1 1.500 0-1.700.2-3.200 1-4.500z" fill="#FFD36B"/></svg>
     <h2 id="stkT"></h2><p id="stkS"></p>
     <button class="btn go big" id="stkOk">확인</button>
+  </div>
+</div>
+
+<div class="modal" id="anBox" hidden>
+  <div class="mcard ancard">
+    <div class="mhead"><h2>대국 분석</h2><p id="anSub"></p></div>
+    <button class="mx" id="anClose" aria-label="닫기">×</button>
+    <div class="mbody">
+      <div class="anacc" id="anAcc"></div>
+      <table class="antab" id="anTab"></table>
+      <h3 class="anh">주요 장면</h3>
+      <div class="ankey" id="anKey"></div>
+    </div>
   </div>
 </div>
 
@@ -879,7 +908,7 @@ const TCS=[['제한 없음',0,0],['1분',1,0],['2 | 1',2,1],['3분',3,0],['3 | 2
 const fresh=(rule,tc)=>({v:0,by:me,game:1,rule,moves:[],seats:['L1','L2'],black:'L1',names:{},resign:0,timeout:0,ask:null,tc:tc||null,t:tc?[tc.m,tc.m]:null});
 let S=fresh('renju'), mode='home', code=null, net=null, online=[], connected=false;
 let pick=null, hover=null, notice='', armResign=false, lastLen=0, findTimer=null, noticeTimer=null, toastTimer=null, shutOver='', view=null;
-let hint=null, revTimer=null, markKey='', drag=null, noClick=false, drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
+let an=null, hint=null, revTimer=null, markKey='', drag=null, noClick=false, drawn=null, stripKey='', delayKey='', readyKey='', puz=null, tab='tHome';
 let chat=[], chatDrawn=0, unread=0, chosenRule='renju', chosenTc=0, tickFrom=Date.now(), tickKey='';
 
 /* 초대 코드: 한글도 쓸 수 있게, 연결에 쓰는 이름은 글자를 16진수로 바꿔 만든다. */
@@ -1088,6 +1117,58 @@ function aiMove(moves,rule,level){
   }
   return best;
 }
+/* 대국 분석: 수마다 평가(최선·실수 등)와 더 좋은 수를 돌려준다. */
+let vcfSure=true;
+function vcfQuick(b,c,rule,budget,depth){vcfBudget=budget;const r=vcf(b,c,rule,depth);vcfSure=r!=null||(vcfBudget>0&&Date.now()<=vcfEnd);return r}
+function analyzeMove(b,c,rule,p,k){
+  const o=3-c;
+  vcfEnd=Date.now()+600;
+  b[p]=c;const won=!!winLine(b,p,c,rule);b[p]=0;
+  if(won)return {cls:'win'};
+  const list=rank(b,c,rule,0.9);if(!list.length)return {cls:'good'};
+  const mine=list.find(e=>e.i===p)||{i:p,v:0,atk:0,def:0};
+  const fives=list.filter(e=>e.atk>=100000);
+  if(fives.length)return {cls:'miss',best:fives[0].i};
+  const blocks=list.filter(e=>e.def>=100000).map(e=>e.i);
+  if(blocks.length){
+    if(blocks.includes(p))return {cls:'best'};
+    return blocks.length>=2?{cls:'good'}:{cls:'blunder',best:blocks[0]};
+  }
+  const my=k>=4?vcfQuick(b,c,rule,500,8):null;
+  if(my!=null){
+    if(p===my)return {cls:'great'};
+    b[p]=c;let keep=false;const w=fivesNear(b,p,c,rule);
+    if(w.length>=2)keep=true;
+    else if(w.length===1&&!forbidden(b,w[0],o,rule)){b[w[0]]=o;keep=vcfQuick(b,c,rule,400,8)!=null;b[w[0]]=0}
+    b[p]=0;
+    return keep?{cls:'great'}:{cls:'miss',best:my};
+  }
+  if(k>=4){
+    b[p]=c;const opp=winsFor(b,o).length?null:vcfQuick(b,o,rule,400,8);b[p]=0;
+    if(opp!=null){
+      for(const e of list.slice(0,6)){if(e.i===p)continue;b[e.i]=c;const ok=!winsFor(b,o).length&&vcfQuick(b,o,rule,300,8)==null&&vcfSure;b[e.i]=0;if(Date.now()>vcfEnd)break;if(ok)return {cls:'blunder',best:e.i}}
+    }
+  }
+  /* 한 수 앞(상대의 가장 좋은 응수)까지 보고 점수를 매긴다. */
+  const ev=e=>{b[e.i]=c;const rep=rank(b,o,rule,0.9);b[e.i]=0;return e.v-0.75*(rep.length?rep[0].v:0)};
+  const pool=list.slice(0,8);if(!pool.some(e=>e.i===p))pool.push(mine);
+  let bi=pool[0].i,bv=-1e12,mv=0;
+  for(const e of pool){const v=ev(e);if(e.i===p)mv=v;if(v>bv){bv=v;bi=e.i}}
+  const loss=bi===p?0:(bv-mv)/Math.max(list[0].v,300);
+  if(loss<=0.1)return {cls:mine.atk>=20000?'great':'best'};
+  let cls=loss<=0.4?'good':loss<=0.75?'inacc':bv-mv>=40000&&k>=6?'blunder':'mistake';
+  if(k<6&&cls!=='good')cls='good';
+  return cls==='good'?{cls}:{cls,best:bi};
+}
+function analyzeGame(moves,rule){
+  const b=new Array(N*N).fill(0),out=[];
+  for(let k=0;k<moves.length;k++){
+    const c=k%2?WHITE:BLACK,p=moves[k];
+    out.push(k<2?{cls:'open'}:analyzeMove(b,c,rule,p,k));
+    b[p]=c;
+  }
+  return out;
+}
 /*ENDGEN*/
 const dayStr=d=>`${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
 const TYPES=['win','block','four','double'];
@@ -1099,12 +1180,19 @@ let worker=null,wseq=0;const jobs=new Map();
 function mkWorker(){
   try{
     const cut=(a,b)=>SRC.split(a)[1].split(b)[0];
-    const code=cut('/*'+'RULES*/','/*'+'END*/')+cut('/*'+'GEN*/','/*'+'ENDGEN*/')+'\nonmessage=e=>{const d=e.data;postMessage({id:d.id,p:d.kind==="ai"?aiMove(d.moves,d.rule,d.level):genPuzzle(d.type,d.seed)})};';
+    const code=cut('/*'+'RULES*/','/*'+'END*/')+cut('/*'+'GEN*/','/*'+'ENDGEN*/')+'\nonmessage=e=>{const d=e.data;postMessage({id:d.id,p:d.kind==="ai"?aiMove(d.moves,d.rule,d.level):d.kind==="an"?analyzeGame(d.moves,d.rule):genPuzzle(d.type,d.seed)})};';
     const w=new Worker(URL.createObjectURL(new Blob([code],{type:'text/javascript'})));
     w.onmessage=e=>{const j=jobs.get(e.data.id);if(j){jobs.delete(e.data.id);j.f(e.data.p)}};
-    w.onerror=()=>{worker=false;for(const [k,j] of jobs){jobs.delete(k);j.f(j.kind==='ai'?aiMove(j.moves,j.rule,j.level):genPuzzle(j.type,j.seed))}};
+    w.onerror=()=>{worker=false;for(const [k,j] of jobs){jobs.delete(k);j.f(j.kind==='ai'?aiMove(j.moves,j.rule,j.level):j.kind==='an'?analyzeGame(j.moves,j.rule):genPuzzle(j.type,j.seed))}};
     return w;
   }catch(e){return false}
+}
+function anAsync(moves,rule){
+  if(worker===null)worker=mkWorker();
+  return new Promise(f=>{
+    if(!worker){setTimeout(()=>f(analyzeGame(moves,rule)),30);return}
+    const id=++wseq;jobs.set(id,{kind:'an',moves,rule,f});worker.postMessage({id,kind:'an',moves,rule});
+  });
 }
 function aiAsync(moves,rule,level){
   if(worker===null)worker=mkWorker();
@@ -1380,6 +1468,8 @@ function canPlayNow(r){
 function ctaText(r,res,can){
   if(puz&&puz.src==='lesson'&&puz.solved)return puz.si+1<LS[puz.li].s.length?'다음 도전 →':'레슨 마치기';
   if(puz&&puz.type==='forbid')return '금수 자리를 눌러 보세요';
+  if(mode==='review'&&an&&an.res){const v=view==null?S.moves.length:view;if(v>0){const a=an.res[v-1],A=AN[a.cls];return `${v}. ${label(S.moves[v-1])} · ${A.n}`+(a.best!=null?` · 더 좋은 수 ${label(a.best)}`:'')+(v===S.moves.length&&res?` · ${res.color?noteName(res.color)+' 승리':'무승부'}`:'')}}
+  if(mode==='review'&&an&&an.busy&&!(view>0))return '분석 중… 잠시만 기다려 주세요';
   if(mode==='review'){const v=view==null?S.moves.length:view;return hint&&hint.at===v?(hint.i==null?'더 둘 자리가 없어요':`AI 추천 ${label(hint.i)}`+(v<S.moves.length?` · 실제로 둔 수 ${label(S.moves[v])}`:'')):(v===S.moves.length&&res?`${res.color?noteName(res.color)+' 승리 · '+res.why:'무승부'} · 복기 중`:`복기 중 · ${v} / ${S.moves.length}수`)}
   if(puz&&puz.solved)return '정답이에요!';
   if(puz&&puz.loading)return '퍼즐을 만드는 중…';
@@ -1420,7 +1510,7 @@ function drawStrip(){
   let h='';
   S.moves.forEach((m,k)=>{
     if(k%2===0)h+=`<span class="n">${k/2+1}.</span>`;
-    h+=`<span class="m${k===cur?' cur':''}">${label(m)}</span>`;
+    h+=`<span class="m${k===cur?' cur':''}">${label(m)}${anSym(k)}</span>`;
   });
   const keep=box.scrollLeft;
   box.innerHTML=h;box.scrollLeft=keep;
@@ -1433,8 +1523,8 @@ function drawMlist(cur){
   if(!S.moves.length){ml.innerHTML='<p class="e">첫 수는 흑입니다. 수순이 여기에 쌓여요.</p>';return}
   let h='';
   for(let k=0;k<S.moves.length;k+=2){
-    const b=k+1<S.moves.length?`<span class="m${k+1===cur?' cur':''}">${label(S.moves[k+1])}</span>`:'<span></span>';
-    h+=`<div class="mrow"><span class="n">${k/2+1}.</span><span class="m${k===cur?' cur':''}">${label(S.moves[k])}</span>${b}</div>`;
+    const b=k+1<S.moves.length?`<span class="m${k+1===cur?' cur':''}">${label(S.moves[k+1])}${anSym(k+1)}</span>`:'<span></span>';
+    h+=`<div class="mrow"><span class="n">${k/2+1}.</span><span class="m${k===cur?' cur':''}">${label(S.moves[k])}${anSym(k)}</span>${b}</div>`;
   }
   ml.innerHTML=h;
   const c=ml.querySelector('.cur');if(c&&view==null)ml.scrollTop=ml.scrollHeight;else if(c)c.scrollIntoView({block:'nearest'});
@@ -1484,6 +1574,14 @@ function render(){
     $('nums').dataset.k=nk;
     $('nums').innerHTML=showNums?shown.map((i,k)=>{const [x,y]=xy(i),n=k+1;return `<text x="${x}" y="${y+(n>99?4.5:5.5)}" text-anchor="middle" font-size="${n>99?12.5:16}" font-weight="800" font-family="sans-serif" fill="${k%2?'#1A1A1A':'#FFFFFF'}">${n}</text>`}).join(''):'';
   }
+  const aKey=mode==='review'&&an&&an.res&&shown.length?shown.length+'':'';
+  if(aKey!==$('anno').dataset.k){
+    $('anno').dataset.k=aKey;let h='';
+    if(aKey){const k=shown.length-1,a=an.res[k],A=AN[a.cls],[x,y]=xy(shown[k]);
+      if(a.best!=null){const [bx,by]=xy(a.best);h+=`<circle class="fadein" cx="${bx}" cy="${by}" r="16" fill="#3DA35D33" stroke="#3DA35D" stroke-width="3.5" stroke-dasharray="6 4"/>`}
+      if(a.cls!=='open')h+=`<g class="fadein"><circle cx="${x+13}" cy="${y-13}" r="10" fill="${A.c}" stroke="#fff" stroke-width="2"/><text x="${x+13}" y="${y-9}" text-anchor="middle" font-size="${A.s.length>1?10:12}" font-weight="900" font-family="sans-serif" fill="#fff">${A.s}</text></g>`}
+    $('anno').innerHTML=h;
+  }
   const ringKey=view==null&&live.win?live.win.line.join():'';
   if(ringKey!==$('fx').dataset.k){
     $('fx').dataset.k=ringKey;
@@ -1531,7 +1629,7 @@ function render(){
 
   const peer=opponent()&&online.some(p=>p.id===opponent());
   $('sig').className='sig '+(mode!=='online'?'on':!connected?'bad':peer?'on':'idle');
-  const sk=S.moves.join()+'|'+view;
+  const sk=S.moves.join()+'|'+view+'|'+(mode==='review'&&an&&an.res?1:0);
   if(sk!==stripKey){stripKey=sk;drawStrip()}
 
   const theyAsked=!!S.ask&&S.ask.by!==me&&seated()&&mode==='online';
@@ -1550,7 +1648,7 @@ function render(){
   $('revBar').hidden=mode!=='review';$('slot').hidden=mode==='review';
   /* 복기 중에는 버튼 줄을 하나만 쓰고, 상태 글은 맨 위 제목 자리에 보여 준다. */
   $('topT').textContent=mode==='review'?cta:'오목';$('topT').classList.toggle('rvt',mode==='review');
-  if(mode==='review'){$('rvPlay').textContent=revTimer?'멈춤':'자동 재생';$('rvHint').disabled=hint&&hint.busy}
+  if(mode==='review'){$('rvPlay').textContent=revTimer?'멈춤':'자동 재생';$('rvHint').disabled=!!(an&&an.busy);$('rvHint').textContent=an&&an.busy?'분석 중…':'분석'}
   $('showAns').hidden=!puz||puz.solved||!!puz.loading;$('skipPuz').hidden=!puz||puz.src!=='endless';
   $('prev').disabled=(view==null?S.moves.length:view)<=0;
   $('next').disabled=view==null;
@@ -1867,9 +1965,9 @@ function showFail(){
 }
 function reset(){
   view=null;pick=null;hover=null;unread=0;chat=[];chatDrawn=0;tickKey='';
-  puz=null;drawn=null;markKey='';$('nums').dataset.k='x';hint=null;clearInterval(revTimer);revTimer=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
+  puz=null;drawn=null;markKey='';$('nums').dataset.k='x';hint=null;an=null;$('anno').dataset.k='x';clearInterval(revTimer);revTimer=null;stripKey='';delayKey='';readyKey='';$('badge').hidden=true;
   $('fx').textContent='';$('fx').dataset.k='';
-  for(const id of ['setup','menu','chat','over','ruleBox','toast','acctBox','aiSheet','setSheet','profSheet','dmSheet'])shut($(id));
+  for(const id of ['setup','menu','chat','over','ruleBox','anBox','toast','acctBox','aiSheet','setSheet','profSheet','dmSheet'])shut($(id));
 }
 async function enter(c,state,log,isFresh){
   if(net)net.close();
@@ -2307,8 +2405,47 @@ function startReview(h){
   if(h.w==='기권'&&winner)S.resign=3-winner;
   if(h.w==='시간 초과'&&winner)S.timeout=3-winner;
   if(!replay(S.moves,S.rule)){S.moves=[];}
-  view=0;render();
+  view=0;render();runAnalysis();
 }
+/* ===== 대국 분석 ===== */
+const AN={
+  great:{n:'결정타',s:'!!',c:'#1BADA6',p:100},best:{n:'최선',s:'★',c:'#3DA35D',p:100},good:{n:'좋은 수',s:'✓',c:'#7BB662',p:85},
+  inacc:{n:'아쉬운 수',s:'?!',c:'#E3B341',p:55},mistake:{n:'실수',s:'?',c:'#E58F2A',p:30},blunder:{n:'큰 실수',s:'??',c:'#D9412B',p:0},
+  miss:{n:'놓친 승리',s:'×',c:'#C2407A',p:10},win:{n:'승리 수',s:'5',c:'#D9A21B',p:100},open:{n:'첫 수',s:'·',c:'#8A8F99',p:null}
+};
+const AN_ORDER=['great','best','good','inacc','mistake','blunder','miss'];
+function anSym(k){
+  if(mode!=='review'||!an||!an.res)return '';
+  const a=an.res[k];if(!a||!['great','inacc','mistake','blunder','miss','win'].includes(a.cls))return '';
+  return `<b class="q" style="color:${AN[a.cls].c}">${AN[a.cls].s}</b>`;
+}
+async function runAnalysis(){
+  const mv=[...S.moves],g=S.game;
+  if(mv.length<3){an=null;return}
+  an={busy:true};render();
+  const res=await anAsync(mv,S.rule);
+  if(mode!=='review'||S.game!==g||S.moves.join()!==mv.join())return;
+  an={res};render();openAnalysis();
+}
+function accOf(c){
+  const ps=an.res.filter((a,k)=>(k%2?WHITE:BLACK)===c&&AN[a.cls].p!=null).map(a=>AN[a.cls].p);
+  return ps.length?Math.round(ps.reduce((x,y)=>x+y,0)/ps.length*10)/10:null;
+}
+function openAnalysis(){
+  if(!an||!an.res)return;
+  const nm=c=>{const id=c===BLACK?S.black:S.seats.find(x=>x!==S.black);return (S.names&&S.names[id])||noteName(c)};
+  const mine=colorOf(me)||BLACK;
+  $('anSub').textContent=`${S.moves.length}수 · ${RULES[S.rule]?RULES[S.rule].short+' 규칙':''}`.replace(/ · $/,'');
+  $('anAcc').innerHTML=[BLACK,WHITE].map(c=>{const v=accOf(c);return `<div${c===mine?' class="me"':''}><span>${c===BLACK?'흑':'백'} · ${esc(nm(c))}</span><b>${v==null?'-':v}</b><span>정확도</span></div>`}).join('');
+  const cnt=(cls,c)=>an.res.filter((a,k)=>a.cls===cls&&(k%2?WHITE:BLACK)===c).length;
+  $('anTab').innerHTML='<tr><td></td><td>흑</td><td>백</td></tr>'+AN_ORDER.map(cls=>`<tr><td><span class="ic" style="background:${AN[cls].c}">${AN[cls].s}</span>${AN[cls].n}</td><td>${cnt(cls,BLACK)}</td><td>${cnt(cls,WHITE)}</td></tr>`).join('');
+  const keys=[];an.res.forEach((a,k)=>{if(['great','mistake','blunder','miss'].includes(a.cls))keys.push(k)});
+  $('anKey').innerHTML=keys.length?keys.slice(0,12).map(k=>{const a=an.res[k],A=AN[a.cls];return `<button data-k="${k}"><span class="ic" style="background:${A.c};display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:900">${A.s}</span><span>${k+1}. ${k%2?'백':'흑'} ${label(S.moves[k])} · ${A.n}${a.best!=null?` → ${label(a.best)}`:''}</span></button>`}).join(''):'<p class="e">큰 실수 없이 깔끔한 대국이었어요.</p>';
+  show($('anBox'));
+}
+$('anKey').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;revStop();const k=+b.dataset.k;view=k+1>=S.moves.length?null:k+1;hide($('anBox'));render()};
+$('anClose').onclick=()=>hide($('anBox'));
+$('anBox').onclick=e=>{if(e.target===$('anBox'))hide($('anBox'))};
 function revStop(){clearInterval(revTimer);revTimer=null}
 $('rvFirst').onclick=()=>{revStop();view=0;render()};
 $('rvLast').onclick=()=>{revStop();view=null;render()};
@@ -2322,15 +2459,7 @@ $('rvPlay').onclick=()=>{
   },850);
   render();
 };
-$('rvHint').onclick=async()=>{
-  revStop();
-  const v=view==null?S.moves.length:view,mv=S.moves.slice(0,v),r=replay(mv,S.rule);
-  if(!r||r.win||r.full){hint={at:v,i:null};render();return}
-  hint={at:v,busy:true,i:null};render();
-  const i=await aiAsync(mv,S.rule,3);
-  if(mode!=='review')return;
-  hint={at:v,i};render();
-};
+$('rvHint').onclick=()=>{revStop();if(an&&an.res)openAnalysis();else if(!an)runAnalysis();render()};
 
 /* ===== AI 대결 ===== */
 const AILV=[['입문','처음 배우는 사람용이에요. 실수를 자주 해요.'],['쉬움','기본적인 공격과 수비를 해요.'],['보통','4와 열린 3을 놓치지 않아요.'],['어려움','연속 4로 끝내는 수까지 읽어요.']];
